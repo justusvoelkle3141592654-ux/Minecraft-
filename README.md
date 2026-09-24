@@ -79,10 +79,14 @@ Auf Wasser, Eis, Lava und Laub wird nicht gebaut.
 | Befehl                                   | Beschreibung                                  |
 |------------------------------------------|-----------------------------------------------|
 | `/sondertnt give <Spieler> <typ> [anzahl]` | Sonder-TNT geben (Anzahl 1–2304)            |
+| `/sondertnt alle <Spieler> [anzahl]`     | Alle 5 Sonder-TNT (je 64 oder `anzahl`) + 1 Feuerzeug |
 | `/sondertnt list`                        | Alle Sonder-TNT-Typen anzeigen                |
 | `/sondertnt reload`                      | `config.yml` neu laden (inkl. Rezepte, Loot)  |
 | `/struktur bauen <name>`                 | Struktur vor dem Spieler bauen                |
 | `/struktur list`                         | Alle Strukturen anzeigen                      |
+
+Im Befehlsblock funktioniert auch `@p`, z. B. `sondertnt alle @p`
+(in der `server.properties` muss `enable-command-block=true` stehen).
 
 Alle Befehle haben Tab-Vervollständigung und brauchen die Permission
 **`sondertnt.admin`** (Standard: OP).

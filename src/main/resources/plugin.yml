@@ -8,7 +8,7 @@ load: STARTUP
 commands:
   sondertnt:
     description: Sonder-TNT geben, auflisten und Konfiguration neu laden
-    usage: /<command> give <Spieler> <typ> [anzahl] | list | reload
+    usage: /<command> give <Spieler> <typ> [anzahl] | alle <Spieler> [anzahl] | list | reload
     permission: sondertnt.admin
     permission-message: Dazu fehlt dir die Berechtigung.
   struktur:
