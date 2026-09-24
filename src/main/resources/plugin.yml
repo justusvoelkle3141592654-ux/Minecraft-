@@ -1,0 +1,23 @@
+name: SonderTNT
+version: ${project.version}
+main: de.sondertnt.SonderTNTPlugin
+description: Sonder-TNT und Vanilla-Strukturen (Eaglercraft-kompatibel)
+author: SonderTNT
+load: STARTUP
+
+commands:
+  sondertnt:
+    description: Sonder-TNT geben, auflisten und Konfiguration neu laden
+    usage: /<command> give <Spieler> <typ> [anzahl] | list | reload
+    permission: sondertnt.admin
+    permission-message: Dazu fehlt dir die Berechtigung.
+  struktur:
+    description: Strukturen bauen und auflisten
+    usage: /<command> bauen <name> | list
+    permission: sondertnt.admin
+    permission-message: Dazu fehlt dir die Berechtigung.
+
+permissions:
+  sondertnt.admin:
+    description: Erlaubt alle SonderTNT-Befehle (/sondertnt, /struktur)
+    default: op

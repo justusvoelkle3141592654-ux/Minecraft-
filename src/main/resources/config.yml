@@ -1,0 +1,102 @@
+# ==========================================================
+#  SonderTNT - Konfiguration (Spigot/Paper 1.8.8)
+#  Hinweis: Bitte in dieser Datei keine Umlaute verwenden.
+#  Nach Aenderungen: /sondertnt reload
+# ==========================================================
+
+tnt:
+  # Zuendzeit in Ticks (20 Ticks = 1 Sekunde). Vanilla-TNT: 80
+  zuendzeit: 80
+
+  mega:
+    # Explosionsstaerke (Vanilla-TNT = 4). Hohe Werte koennen laggen.
+    staerke: 15.0
+
+  feuer:
+    staerke: 4.0
+    # Radius (Bloecke), in dem zusaetzliches Feuer entsteht (max. 12)
+    radius: 5
+    # Wahrscheinlichkeit pro geeignetem Block (0.0 - 1.0)
+    dichte: 0.35
+    # Wie lange Spieler/Mobs im Radius brennen (Ticks)
+    brenndauer-ticks: 160
+
+  blitz:
+    staerke: 4.0
+    # Anzahl der Blitze (max. 50)
+    anzahl: 5
+    radius: 6.0
+    # Abstand zwischen zwei Blitzen in Ticks
+    verzoegerung-ticks: 4
+    # true = Blitze nur als Effekt (kein Schaden, kein Feuer)
+    nur-effekt: false
+
+  lift:
+    # Lift-TNT zerstoert keine Bloecke und macht keinen Explosionsschaden.
+    radius: 7.0
+    # Senkrechte Geschwindigkeit (max. 3.9; 2.0 = ca. 20 Bloecke hoch)
+    hoehe: 2.0
+    # Seitlicher Stoss weg von der Mitte
+    seitlich: 0.4
+    # Verhindert den Fallschaden nach dem Hochschleudern (einmalig)
+    fallschaden-verhindern: true
+    fallschutz-sekunden: 15
+
+  cluster:
+    # Staerke der Haupt-Explosion
+    staerke: 4.0
+    # Anzahl der kleinen TNT (max. 32)
+    anzahl: 6
+    # Explosionsstaerke der kleinen TNT
+    klein-staerke: 2.0
+    zuendzeit-min: 20
+    zuendzeit-max: 50
+    # Wie weit die kleinen TNT verstreut werden (0.0 - 2.0)
+    streuung: 0.35
+
+# Crafting-Rezepte an (true) oder aus (false)
+rezepte:
+  mega: true
+  feuer: true
+  blitz: true
+  lift: true
+  cluster: true
+
+strukturen:
+  # Loot der Schatztruhe. Format: MATERIAL:min:max:chance
+  # chance in Prozent (0-100). Materialnamen wie in 1.8.8 (z. B. EXP_BOTTLE).
+  # Sonder-TNT: SONDERTNT_<TYP>, z. B. SONDERTNT_MEGA:1:1:10
+  loot:
+    - "IRON_INGOT:2:8:70"
+    - "GOLD_INGOT:1:5:50"
+    - "DIAMOND:1:3:25"
+    - "EMERALD:1:4:30"
+    - "BREAD:3:8:60"
+    - "GOLDEN_APPLE:1:2:20"
+    - "ENDER_PEARL:1:2:15"
+    - "EXP_BOTTLE:2:6:30"
+    - "SADDLE:1:1:10"
+    - "TNT:2:6:40"
+    - "SONDERTNT_MEGA:1:1:5"
+    - "SONDERTNT_FEUER:1:2:10"
+    - "SONDERTNT_BLITZ:1:2:10"
+    - "SONDERTNT_LIFT:1:3:15"
+    - "SONDERTNT_CLUSTER:1:2:10"
+
+weltgenerierung:
+  # Strukturen zufaellig in NEU generierten Chunks erzeugen
+  aktiviert: false
+  # Wahrscheinlichkeit pro neuem Chunk (0.002 = 0,2 % = etwa 1 von 500 Chunks)
+  chance-pro-chunk: 0.002
+  # Maximaler Hoehenunterschied des Bodens unter der Struktur
+  max-hoehenunterschied: 4
+  # Nur in diesen Welten (leer = alle normalen Oberwelten, nie Nether/End)
+  welten: []
+  # Relative Haeufigkeit der Strukturen (0 = nie)
+  gewichtung:
+    turm: 3
+    ruine: 5
+    schatzhaus: 2
+    festung: 1
+  # Koordinaten generierter Strukturen in die Konsole schreiben
+  log: true
