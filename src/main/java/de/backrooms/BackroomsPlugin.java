@@ -23,7 +23,7 @@ import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
- * Backrooms für Spigot/Paper 1.8.8 (Eaglercraft-kompatibel, nur Vanilla-Inhalte).
+ * Backrooms für Spigot/Paper 1.12.2.
  */
 public class BackroomsPlugin extends JavaPlugin {
 
@@ -57,7 +57,8 @@ public class BackroomsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SonderTntListener(this, zuender, effekte), this);
         getServer().getPluginManager().registerEvents(new SchutzListener(weltManager), this);
         getServer().getPluginManager().registerEvents(new SpielerListener(this), this);
-        getServer().getPluginManager().registerEvents(new ItemListener(this), this);
+        final ItemListener itemListener = new ItemListener(this);
+        getServer().getPluginManager().registerEvents(itemListener, this);
         getServer().getPluginManager().registerEvents(gegnerManager, this);
 
         StartBefehl start = new StartBefehl(this);
@@ -80,6 +81,19 @@ public class BackroomsPlugin extends JavaPlugin {
                 flackerlicht.tick();
             }
         }, 10L, 10L);
+        // Blockmodelle der Gegner folgen jeden Tick ihrem Mob
+        getServer().getScheduler().runTaskTimer(this, new Runnable() {
+            @Override
+            public void run() {
+                gegnerManager.modelleBewegen();
+            }
+        }, 1L, 1L);
+        getServer().getScheduler().runTaskTimer(this, new Runnable() {
+            @Override
+            public void run() {
+                itemListener.taschenlampenTick();
+            }
+        }, 3L, 3L);
         getServer().getScheduler().runTaskTimer(this, new Runnable() {
             @Override
             public void run() {
@@ -95,6 +109,9 @@ public class BackroomsPlugin extends JavaPlugin {
         }
         if (bossKampf != null) {
             bossKampf.entfernen();
+        }
+        if (spielablauf != null) {
+            spielablauf.schilderEntfernen();
         }
         if (gegnerManager != null) {
             gegnerManager.allesEntfernen();

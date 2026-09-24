@@ -2,42 +2,46 @@ package de.backrooms.gegner;
 
 import de.backrooms.BackroomsPlugin;
 import de.backrooms.items.BackroomsItem;
+import de.backrooms.items.ItemListener;
 import de.backrooms.welt.Level;
-import org.bukkit.Color;
-import org.bukkit.Effect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.CaveSpider;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Creature;
-import org.bukkit.entity.Enderman;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.IronGolem;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
-import org.bukkit.entity.Skeleton;
+import org.bukkit.entity.Slime;
+import org.bukkit.entity.Spider;
 import org.bukkit.entity.Wolf;
 import org.bukkit.entity.Zombie;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityCombustEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.event.entity.SlimeSplitEvent;
+import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.projectiles.ProjectileSource;
-import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,15 +51,24 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
-/** Spawnt, steuert und entfernt die Backrooms-Gegner. */
+/**
+ * Spawnt, steuert und entfernt die eigenen Backrooms-Gegner.
+ * Jeder Gegner = unsichtbarer Vanilla-Mob + Blockmodell aus Rüstungsständern.
+ */
 public class GegnerManager implements Listener {
 
     public static final String META_TYP = "backrooms_gegner";
-    private static final String META_GEREIZT = "backrooms_gereizt";
+    /** Markiert Rüstungsständer, die zu einem Modell oder Schild des Plugins gehören. */
+    public static final String META_TEIL = "backrooms_teil";
     private static final int UNENDLICH = Integer.MAX_VALUE;
+    /** Höhe der Blockmitte über den Füßen eines Rüstungsständers. */
+    private static final double KOPF_HOEHE = 1.69;
 
     private final BackroomsPlugin plugin;
     private final Map<UUID, LivingEntity> gegner = new HashMap<UUID, LivingEntity>();
+    private final Map<UUID, List<ArmorStand>> modelle = new HashMap<UUID, List<ArmorStand>>();
+    /** Rüstungsständer eines Modells -> zugehöriger Gegner (für Treffer auf das Modell). */
+    private final Map<UUID, LivingEntity> teilZuGegner = new HashMap<UUID, LivingEntity>();
     private final Random random = new Random();
     private int sekunden;
 
@@ -69,137 +82,135 @@ public class GegnerManager implements Listener {
         World welt = ort.getWorld();
         LivingEntity mob;
         switch (typ) {
-            case HOUND: {
+            case TAPETENKRIECHER:
+                mob = welt.spawn(ort, Spider.class);
+                break;
+            case SCHATTENHUND: {
                 Wolf wolf = welt.spawn(ort, Wolf.class);
                 wolf.setAngry(true);
-                effekt(wolf, PotionEffectType.SPEED, 1);
-                effekt(wolf, PotionEffectType.INCREASE_DAMAGE, 0);
                 mob = wolf;
                 break;
             }
-            case SMILER: {
-                Enderman enderman = welt.spawn(ort, Enderman.class);
-                effekt(enderman, PotionEffectType.INCREASE_DAMAGE, 0);
-                mob = enderman;
-                break;
-            }
-            case SKIN_STEALER: {
-                Zombie zombie = welt.spawn(ort, Zombie.class);
-                zombie.setBaby(false);
-                zombie.setVillager(false);
-                // Sieht aus wie ein Spieler: Kopf eines Spielers, Kleidung wie Steve
-                ausruesten(zombie, spielerKopf(naechsterSpielerName(ort)),
-                        leder(Material.LEATHER_CHESTPLATE, 0x3CA0B4),
-                        leder(Material.LEATHER_LEGGINGS, 0x3C3CA0),
-                        leder(Material.LEATHER_BOOTS, 0x505050), null);
-                effekt(zombie, PotionEffectType.SPEED, 0);
-                mob = zombie;
-                break;
-            }
-            case PARTYGOER: {
-                Skeleton skelett = welt.spawn(ort, Skeleton.class);
-                ausruesten(skelett, new ItemStack(Material.PUMPKIN),
-                        leder(Material.LEATHER_CHESTPLATE, 0xFFD800),
-                        leder(Material.LEATHER_LEGGINGS, 0xFFD800),
-                        leder(Material.LEATHER_BOOTS, 0xFF4FA0), new ItemStack(Material.BOW));
-                mob = skelett;
-                break;
-            }
-            case FACELING: {
-                Zombie zombie = welt.spawn(ort, Zombie.class);
-                zombie.setBaby(false);
-                zombie.setVillager(true);
-                ausruesten(zombie, null, null, null, null, null);
-                mob = zombie;
-                break;
-            }
-            case TODESMOTTE: {
-                CaveSpider spinne = welt.spawn(ort, CaveSpider.class);
-                effekt(spinne, PotionEffectType.SPEED, 1);
-                mob = spinne;
+            case PARTYBALLON: {
+                Slime slime = welt.spawn(ort, Slime.class);
+                slime.setSize(2);
+                mob = slime;
                 break;
             }
             case WARDEN: {
-                Skeleton skelett = welt.spawn(ort, Skeleton.class);
-                skelett.setSkeletonType(Skeleton.SkeletonType.WITHER);
-                int farbe = 0x0F4C5C;
-                ausruesten(skelett, leder(Material.LEATHER_HELMET, 0x062A33),
-                        leder(Material.LEATHER_CHESTPLATE, farbe),
-                        leder(Material.LEATHER_LEGGINGS, farbe),
-                        leder(Material.LEATHER_BOOTS, 0x062A33), null);
-                effekt(skelett, PotionEffectType.INCREASE_DAMAGE, 1);
-                effekt(skelett, PotionEffectType.FIRE_RESISTANCE, 0);
-                skelett.setRemoveWhenFarAway(false);
-                mob = skelett;
+                IronGolem golem = welt.spawn(ort, IronGolem.class);
+                golem.setPlayerCreated(false);
+                mob = golem;
                 break;
             }
-            default:
-                throw new IllegalArgumentException("Unbekannter Gegner " + typ);
+            default: {
+                // GRINSER und ROHRGEIST
+                Zombie zombie = welt.spawn(ort, Zombie.class);
+                zombie.setBaby(false);
+                mob = zombie;
+                break;
+            }
         }
 
-        double leben = typ == GegnerTyp.WARDEN
-                ? plugin.getConfig().getDouble("boss.leben", typ.getStandardLeben())
-                : plugin.getConfig().getDouble("gegner.leben." + typ.getId(), typ.getStandardLeben());
-        leben = Math.max(1.0, Math.min(2000.0, leben));
-        mob.setMaxHealth(leben);
-        mob.setHealth(leben);
-        mob.setCustomName(typ.getAnzeigename());
-        mob.setCustomNameVisible(typ != GegnerTyp.SKIN_STEALER);
+        // Unsichtbar und ohne Vanilla-Ausrüstung: sichtbar ist nur das Blockmodell
+        mob.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, UNENDLICH, 0, true, false), true);
+        EntityEquipment ausruestung = mob.getEquipment();
+        if (ausruestung != null) {
+            ausruestung.clear();
+        }
+        mob.setSilent(true);
         mob.setCanPickupItems(false);
+        mob.setRemoveWhenFarAway(false);
+
+        double leben = Math.max(1.0, Math.min(1000.0, typ == GegnerTyp.WARDEN
+                ? plugin.getConfig().getDouble("boss.leben", typ.getStandardLeben())
+                : plugin.getConfig().getDouble("gegner.leben." + typ.getId(), typ.getStandardLeben())));
+        AttributeInstance maxLeben = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        if (maxLeben != null) {
+            maxLeben.setBaseValue(leben);
+        }
+        mob.setHealth(leben);
+        AttributeInstance tempo = mob.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+        if (tempo != null && typ.getTempo() > 0) {
+            tempo.setBaseValue(typ.getTempo());
+        }
+        AttributeInstance folgen = mob.getAttribute(Attribute.GENERIC_FOLLOW_RANGE);
+        if (folgen != null) {
+            folgen.setBaseValue(typ == GegnerTyp.WARDEN ? 40 : 24);
+        }
+
+        mob.setCustomName(typ.getAnzeigename());
+        mob.setCustomNameVisible(true);
         mob.setMetadata(META_TYP, new FixedMetadataValue(plugin, typ.name()));
         gegner.put(mob.getUniqueId(), mob);
+        modellBauen(mob, typ);
         return mob;
     }
 
-    private static void effekt(LivingEntity mob, PotionEffectType typ, int staerke) {
-        mob.addPotionEffect(new PotionEffect(typ, UNENDLICH, staerke, true), true);
-    }
-
-    private static void ausruesten(LivingEntity mob, ItemStack kopf, ItemStack brust, ItemStack beine,
-                                   ItemStack schuhe, ItemStack hand) {
-        EntityEquipment e = mob.getEquipment();
-        e.setHelmet(kopf);
-        e.setChestplate(brust);
-        e.setLeggings(beine);
-        e.setBoots(schuhe);
-        // Setzen der Hand aktualisiert bei Skeletten die Angriffsart (Bogen oder Nahkampf)
-        e.setItemInHand(hand);
-        e.setHelmetDropChance(0F);
-        e.setChestplateDropChance(0F);
-        e.setLeggingsDropChance(0F);
-        e.setBootsDropChance(0F);
-        e.setItemInHandDropChance(0F);
-    }
-
-    private static ItemStack leder(Material material, int rgb) {
-        ItemStack item = new ItemStack(material);
-        LeatherArmorMeta meta = (LeatherArmorMeta) item.getItemMeta();
-        meta.setColor(Color.fromRGB(rgb));
-        item.setItemMeta(meta);
-        return item;
-    }
-
-    private static ItemStack spielerKopf(String besitzer) {
-        ItemStack kopf = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
-        if (besitzer != null) {
-            SkullMeta meta = (SkullMeta) kopf.getItemMeta();
-            meta.setOwner(besitzer);
-            kopf.setItemMeta(meta);
+    private void modellBauen(LivingEntity mob, GegnerTyp typ) {
+        List<ArmorStand> staender = new ArrayList<ArmorStand>();
+        for (Modelle.Teil teil : Modelle.fuer(typ)) {
+            // Kein Marker: Marker-Ständer werden mit dem Licht an ihren Füßen gezeichnet,
+            // die bei tiefen Teilen im Boden liegen (Teile wären dann schwarz).
+            ArmorStand stand = standErzeugen(position(mob.getLocation(), teil), false);
+            stand.setHelmet(new ItemStack(teil.material, 1, teil.daten));
+            staender.add(stand);
+            teilZuGegner.put(stand.getUniqueId(), mob);
         }
-        return kopf;
+        modelle.put(mob.getUniqueId(), staender);
     }
 
-    private static String naechsterSpielerName(Location ort) {
-        Player naechster = null;
-        double beste = Double.MAX_VALUE;
-        for (Player p : ort.getWorld().getPlayers()) {
-            double d = p.getLocation().distanceSquared(ort);
-            if (d < beste) {
-                beste = d;
-                naechster = p;
+    /**
+     * Unsichtbarer Rüstungsständer des Plugins.
+     *
+     * @param marker true = ohne Trefferfläche (für schwebende Schilder)
+     */
+    public ArmorStand standErzeugen(Location ort, boolean marker) {
+        ArmorStand stand = ort.getWorld().spawn(ort, ArmorStand.class);
+        stand.setVisible(false);
+        stand.setGravity(false);
+        stand.setMarker(marker);
+        stand.setBasePlate(false);
+        stand.setSilent(true);
+        stand.setMetadata(META_TEIL, new FixedMetadataValue(plugin, true));
+        return stand;
+    }
+
+    private static Location position(Location basis, Modelle.Teil teil) {
+        double winkel = Math.toRadians(basis.getYaw());
+        // Minecraft: Yaw 0 = Süden (+z). Vorwärts = (-sin, cos), rechts = (-cos, -sin)
+        double vx = -Math.sin(winkel);
+        double vz = Math.cos(winkel);
+        double rx = -Math.cos(winkel);
+        double rz = -Math.sin(winkel);
+        double x = basis.getX() + rx * teil.rechts + vx * teil.vor;
+        double z = basis.getZ() + rz * teil.rechts + vz * teil.vor;
+        double y = basis.getY() + teil.hoch - KOPF_HOEHE;
+        return new Location(basis.getWorld(), x, y, z, basis.getYaw(), 0F);
+    }
+
+    /** Wird jeden Tick aufgerufen: Modelle folgen ihrem Mob. */
+    public void modelleBewegen() {
+        Iterator<Map.Entry<UUID, List<ArmorStand>>> it = modelle.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<UUID, List<ArmorStand>> eintrag = it.next();
+            LivingEntity mob = gegner.get(eintrag.getKey());
+            if (mob == null || !mob.isValid() || mob.isDead()) {
+                for (ArmorStand stand : eintrag.getValue()) {
+                    teilZuGegner.remove(stand.getUniqueId());
+                    stand.remove();
+                }
+                it.remove();
+                continue;
+            }
+            GegnerTyp typ = typVon(mob);
+            List<Modelle.Teil> teile = Modelle.fuer(typ);
+            List<ArmorStand> staender = eintrag.getValue();
+            Location basis = mob.getLocation();
+            for (int i = 0; i < staender.size() && i < teile.size(); i++) {
+                staender.get(i).teleport(position(basis, teile.get(i)));
             }
         }
-        return naechster == null ? null : naechster.getName();
     }
 
     // ------------------------------------------------------------ Abfragen
@@ -226,8 +237,25 @@ public class GegnerManager implements Listener {
         return liste;
     }
 
+    public void entfernen(LivingEntity mob) {
+        List<ArmorStand> staender = modelle.remove(mob.getUniqueId());
+        if (staender != null) {
+            for (ArmorStand stand : staender) {
+                teilZuGegner.remove(stand.getUniqueId());
+                stand.remove();
+            }
+        }
+        gegner.remove(mob.getUniqueId());
+        mob.remove();
+    }
+
     private static boolean istZiel(Player p) {
         return !p.isDead() && (p.getGameMode() == GameMode.SURVIVAL || p.getGameMode() == GameMode.ADVENTURE);
+    }
+
+    /** Die Level liegen übereinander, deshalb zählt nur, wer im selben Level ist. */
+    private static boolean gleichesLevel(Location a, Location b) {
+        return Level.vonHoehe(a.getY()) == Level.vonHoehe(b.getY());
     }
 
     private static Player naechstesZiel(LivingEntity mob, double radius) {
@@ -255,39 +283,30 @@ public class GegnerManager implements Listener {
         }
         sekunden++;
 
-        Iterator<LivingEntity> it = gegner.values().iterator();
-        while (it.hasNext()) {
-            LivingEntity mob = it.next();
+        for (LivingEntity mob : new ArrayList<LivingEntity>(gegner.values())) {
             if (!mob.isValid()) {
-                it.remove();
+                gegner.remove(mob.getUniqueId());
                 continue;
             }
             GegnerTyp typ = typVon(mob);
             if (typ == null) {
                 continue;
             }
-            // Weit weg von allen Spielern -> entfernen (außer dem Boss)
             if (typ != GegnerTyp.WARDEN && keinSpielerInDerNaehe(mob, 64.0)) {
-                mob.remove();
-                it.remove();
+                entfernen(mob);
                 continue;
             }
             zielSetzen(mob, typ);
-            faehigkeiten(mob, typ);
+            geraeusch(mob, typ);
         }
 
-        int intervall = Math.max(1, plugin.getConfig().getInt("gegner.spawn-intervall-sekunden", 5));
+        int intervall = Math.max(1, plugin.getConfig().getInt("gegner.spawn-intervall-sekunden", 8));
         if (plugin.getConfig().getBoolean("gegner.aktiviert", true) && sekunden % intervall == 0) {
             spawnRunde(welt);
         }
         if (sekunden % 30 == 0) {
             fremdeEntfernen();
         }
-    }
-
-    /** Die Level liegen übereinander, deshalb zählt nur, wer im selben Level ist. */
-    private static boolean gleichesLevel(Location a, Location b) {
-        return Level.vonHoehe(a.getY()) == Level.vonHoehe(b.getY());
     }
 
     private static boolean keinSpielerInDerNaehe(LivingEntity mob, double radius) {
@@ -302,10 +321,7 @@ public class GegnerManager implements Listener {
 
     private void zielSetzen(LivingEntity mob, GegnerTyp typ) {
         if (!(mob instanceof Creature)) {
-            return;
-        }
-        if (typ == GegnerTyp.FACELING && !mob.hasMetadata(META_GEREIZT)) {
-            return;
+            return; // Slimes suchen sich ihr Ziel selbst
         }
         Creature kreatur = (Creature) mob;
         LivingEntity aktuell = kreatur.getTarget();
@@ -320,37 +336,29 @@ public class GegnerManager implements Listener {
         }
     }
 
-    private void faehigkeiten(LivingEntity mob, GegnerTyp typ) {
+    /** Eigene Geräusche und Effekte (die Mobs selbst sind stumm). */
+    private void geraeusch(LivingEntity mob, GegnerTyp typ) {
+        if (random.nextInt(8) != 0) {
+            return;
+        }
         Location ort = mob.getLocation();
+        World welt = mob.getWorld();
         switch (typ) {
-            case SMILER:
-                // Taschenlampe blendet Smiler in der Nähe
-                for (Player p : mob.getWorld().getPlayers()) {
-                    if (BackroomsItem.von(p.getItemInHand()) != BackroomsItem.TASCHENLAMPE) {
-                        continue;
-                    }
-                    if (p.getLocation().distanceSquared(ort) > 10 * 10 || !p.hasLineOfSight(mob)) {
-                        continue;
-                    }
-                    mob.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 40, 3), true);
-                    mob.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 40, 1), true);
-                    Vector weg = ort.toVector().subtract(p.getLocation().toVector()).setY(0);
-                    if (weg.lengthSquared() > 0.01) {
-                        mob.setVelocity(weg.normalize().multiply(0.6).setY(0.2));
-                    }
-                    break;
-                }
+            case TAPETENKRIECHER:
+                welt.playSound(ort, Sound.ENTITY_SPIDER_AMBIENT, 0.6F, 1.6F);
                 break;
-            case HOUND:
-                if (random.nextInt(12) == 0) {
-                    mob.getWorld().playSound(ort, Sound.WOLF_GROWL, 1.0F, 0.6F);
-                }
+            case GRINSER:
+                welt.playSound(ort, Sound.ENTITY_WITCH_AMBIENT, 0.8F, 0.6F);
                 break;
-            case PARTYGOER:
-                if (random.nextInt(3) == 0) {
-                    mob.getWorld().spigot().playEffect(ort.clone().add(0, 2.2, 0), Effect.NOTE,
-                            0, 0, 0.4F, 0.3F, 0.4F, 1.0F, 3, 32);
-                }
+            case SCHATTENHUND:
+                welt.playSound(ort, Sound.ENTITY_WOLF_GROWL, 0.8F, 0.7F);
+                break;
+            case PARTYBALLON:
+                welt.playSound(ort, Sound.BLOCK_NOTE_PLING, 0.8F, 0.5F + random.nextFloat());
+                welt.spawnParticle(Particle.NOTE, ort.clone().add(0, 2.3, 0), 3, 0.5, 0.3, 0.5, 1);
+                break;
+            case ROHRGEIST:
+                welt.playSound(ort, Sound.BLOCK_IRON_TRAPDOOR_CLOSE, 0.6F, 0.5F);
                 break;
             default:
                 break;
@@ -360,8 +368,8 @@ public class GegnerManager implements Listener {
     // ------------------------------------------------------------ Spawn-Runde
 
     private void spawnRunde(World welt) {
-        int maxProSpieler = plugin.getConfig().getInt("gegner.max-pro-spieler", 5);
-        int maxGesamt = plugin.getConfig().getInt("gegner.max-gesamt", 60);
+        int maxProSpieler = plugin.getConfig().getInt("gegner.max-pro-spieler", 3);
+        int maxGesamt = plugin.getConfig().getInt("gegner.max-gesamt", 40);
         for (Player p : welt.getPlayers()) {
             if (!istZiel(p) || gegner.size() >= maxGesamt) {
                 continue;
@@ -384,7 +392,7 @@ public class GegnerManager implements Listener {
             if (typ == null) {
                 continue;
             }
-            Location ort = spawnOrt(p, level, typ);
+            Location ort = spawnOrt(p, level);
             if (ort != null) {
                 spawnen(typ, ort);
             }
@@ -423,9 +431,9 @@ public class GegnerManager implements Listener {
         return null;
     }
 
-    private Location spawnOrt(Player p, Level level, GegnerTyp typ) {
-        double min = plugin.getConfig().getDouble("gegner.abstand-min", 12);
-        double max = Math.max(min + 1, plugin.getConfig().getDouble("gegner.abstand-max", 26));
+    private Location spawnOrt(Player p, Level level) {
+        double min = plugin.getConfig().getDouble("gegner.abstand-min", 14);
+        double max = Math.max(min + 1, plugin.getConfig().getDouble("gegner.abstand-max", 28));
         World welt = p.getWorld();
         int y = level.getBodenY() + 1;
         for (int versuch = 0; versuch < 15; versuch++) {
@@ -437,20 +445,8 @@ public class GegnerManager implements Listener {
                 continue;
             }
             Block fuss = welt.getBlockAt(x, y, z);
-            if (!fuss.getRelative(0, -1, 0).getType().isSolid()) {
-                continue;
-            }
-            boolean frei = true;
-            for (int h = 0; h < typ.getLuftBedarf(); h++) {
-                if (fuss.getRelative(0, h, 0).getType() != Material.AIR) {
-                    frei = false;
-                    break;
-                }
-            }
-            if (!frei) {
-                continue;
-            }
-            if (typ.istNurImDunkeln() && fuss.getLightLevel() > 7) {
+            if (!fuss.getRelative(0, -1, 0).getType().isSolid()
+                    || fuss.getType() != Material.AIR || fuss.getRelative(0, 1, 0).getType() != Material.AIR) {
                 continue;
             }
             return new Location(welt, x + 0.5, y, z + 0.5, random.nextFloat() * 360F, 0F);
@@ -460,50 +456,53 @@ public class GegnerManager implements Listener {
 
     // ------------------------------------------------------------ Aufräumen
 
-    /** Entfernt alle Mobs in der Backrooms-Welt, die nicht von diesem Plugin gesteuert werden. */
+    private boolean istPluginTeil(Entity entity) {
+        return entity.hasMetadata(META_TEIL);
+    }
+
+    /** Entfernt alle Mobs und Rüstungsständer in der Backrooms-Welt, die nicht zum Plugin gehören. */
     public void fremdeEntfernen() {
         World welt = plugin.getWeltManager().getWelt();
         if (welt == null) {
             return;
         }
         for (LivingEntity mob : welt.getLivingEntities()) {
-            if (!(mob instanceof Player) && !gegner.containsKey(mob.getUniqueId())) {
-                mob.remove();
+            if (mob instanceof Player || gegner.containsKey(mob.getUniqueId()) || istPluginTeil(mob)) {
+                continue;
             }
+            mob.remove();
         }
     }
 
     public void allesEntfernen() {
-        for (LivingEntity mob : gegner.values()) {
-            mob.remove();
+        for (LivingEntity mob : new ArrayList<LivingEntity>(gegner.values())) {
+            entfernen(mob);
         }
         gegner.clear();
-        fremdeEntfernen();
+        World welt = plugin.getWeltManager().getWelt();
+        if (welt != null) {
+            for (LivingEntity mob : welt.getLivingEntities()) {
+                if (!(mob instanceof Player) && !istPluginTeil(mob)) {
+                    mob.remove();
+                }
+            }
+        }
     }
 
     // ------------------------------------------------------------ Events
 
     @EventHandler(ignoreCancelled = true)
     public void beimZielen(EntityTargetEvent event) {
-        GegnerTyp typ = typVon(event.getEntity());
-        if (typ == null || event.getTarget() == null) {
+        if (typVon(event.getEntity()) == null || event.getTarget() == null) {
             return;
         }
         if (!(event.getTarget() instanceof Player)) {
             event.setCancelled(true); // Gegner kämpfen nicht untereinander
-            return;
-        }
-        if (typ == GegnerTyp.FACELING && !event.getEntity().hasMetadata(META_GEREIZT)) {
-            event.setCancelled(true);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void beimSchaden(EntityDamageByEntityEvent event) {
-        GegnerTyp opfer = typVon(event.getEntity());
-        if (opfer == null) {
-            return;
-        }
         Entity verursacher = event.getDamager();
         if (verursacher instanceof Projectile) {
             ProjectileSource schuetze = ((Projectile) verursacher).getShooter();
@@ -511,14 +510,19 @@ public class GegnerManager implements Listener {
                 verursacher = (Entity) schuetze;
             }
         }
-        if (typVon(verursacher) != null) {
+        GegnerTyp angreifer = typVon(verursacher);
+        if (angreifer == null) {
+            return;
+        }
+        if (typVon(event.getEntity()) != null) {
             event.setCancelled(true); // kein Eigenbeschuss unter Gegnern
             return;
         }
-        if (opfer == GegnerTyp.FACELING && verursacher instanceof Player) {
-            event.getEntity().setMetadata(META_GEREIZT, new FixedMetadataValue(plugin, true));
-            ((Creature) event.getEntity()).setTarget((Player) verursacher);
-        }
+        // Schaden der Gegner kommt aus der config.yml statt aus den Vanilla-Werten
+        double schaden = angreifer == GegnerTyp.WARDEN
+                ? plugin.getConfig().getDouble("boss.schaden", angreifer.getStandardSchaden())
+                : plugin.getConfig().getDouble("gegner.schaden." + angreifer.getId(), angreifer.getStandardSchaden());
+        event.setDamage(schaden);
     }
 
     @EventHandler
@@ -527,6 +531,15 @@ public class GegnerManager implements Listener {
         GegnerTyp typ = typVon(mob);
         if (typ == null) {
             return;
+        }
+        List<ArmorStand> staender = modelle.remove(mob.getUniqueId());
+        if (staender != null) {
+            for (ArmorStand stand : staender) {
+                stand.getWorld().spawnParticle(Particle.CLOUD, stand.getLocation().add(0, KOPF_HOEHE, 0), 3,
+                        0.2, 0.2, 0.2, 0.02);
+                teilZuGegner.remove(stand.getUniqueId());
+                stand.remove();
+            }
         }
         gegner.remove(mob.getUniqueId());
         event.getDrops().clear();
@@ -540,11 +553,64 @@ public class GegnerManager implements Listener {
             plugin.getBossKampf().besiegt();
             return;
         }
-        if (random.nextDouble() * 100 < plugin.getConfig().getDouble("gegner.beute.mandelwasser", 10)) {
+        double w = random.nextDouble() * 100;
+        if (w < plugin.getConfig().getDouble("gegner.beute.mandelwasser", 20)) {
             event.getDrops().add(BackroomsItem.MANDELWASSER.erstellen(1));
-        }
-        if (random.nextDouble() * 100 < plugin.getConfig().getDouble("gegner.beute.energieriegel", 15)) {
+        } else if (w < plugin.getConfig().getDouble("gegner.beute.mandelwasser", 20)
+                + plugin.getConfig().getDouble("gegner.beute.energieriegel", 20)) {
             event.getDrops().add(BackroomsItem.ENERGIERIEGEL.erstellen(1));
+        } else if (w < plugin.getConfig().getDouble("gegner.beute.mandelwasser", 20)
+                + plugin.getConfig().getDouble("gegner.beute.energieriegel", 20)
+                + plugin.getConfig().getDouble("gegner.beute.granate", 10)) {
+            event.getDrops().add(BackroomsItem.GRANATE.erstellen(1));
+        }
+    }
+
+    /**
+     * Plugin-Rüstungsständer nehmen keinen Schaden. Treffer auf ein Modellteil
+     * (Schlag oder Pistolenkugel) werden an den zugehörigen Gegner weitergegeben.
+     */
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void beimTeilSchaden(EntityDamageEvent event) {
+        if (!istPluginTeil(event.getEntity())) {
+            return;
+        }
+        event.setCancelled(true);
+        LivingEntity mob = teilZuGegner.get(event.getEntity().getUniqueId());
+        if (mob == null || !mob.isValid() || !(event instanceof EntityDamageByEntityEvent)) {
+            return;
+        }
+        Entity verursacher = ((EntityDamageByEntityEvent) event).getDamager();
+        if (verursacher instanceof Projectile) {
+            ProjectileSource schuetze = ((Projectile) verursacher).getShooter();
+            if ("PISTOLE".equals(ItemListener.schussArt(verursacher)) && schuetze instanceof Entity) {
+                mob.damage(plugin.getConfig().getDouble("waffen.pistole-schaden", 7.0), (Entity) schuetze);
+            }
+            return; // Raketen und Granaten wirken über ihre Explosion
+        }
+        if (verursacher instanceof Player) {
+            mob.damage(event.getDamage(), verursacher);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void beimTeilen(SlimeSplitEvent event) {
+        if (typVon(event.getEntity()) != null) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void beimBrennen(EntityCombustEvent event) {
+        if (typVon(event.getEntity()) != null) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void beimStaenderBenutzen(PlayerArmorStandManipulateEvent event) {
+        if (istPluginTeil(event.getRightClicked())) {
+            event.setCancelled(true);
         }
     }
 }

@@ -1,7 +1,7 @@
 name: Backrooms
 version: ${project.version}
 main: de.backrooms.BackroomsPlugin
-description: Backrooms-Abenteuer mit Leveln, Gegnern, Warden-Boss und Sonder-TNT (Eaglercraft-kompatibel)
+description: Backrooms-Abenteuer mit eigenen Gegnern, Waffen, Warden-Boss und Sonder-TNT (Spigot/Paper 1.12.2)
 author: Backrooms
 
 commands:

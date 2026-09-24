@@ -129,13 +129,13 @@ public final class Labyrinth {
         double chance;
         switch (level) {
             case LEVEL_1:
-                chance = 0.55;
+                chance = 0.90;
                 break;
             case LEVEL_2:
-                chance = 0.15;
+                chance = 0.65;
                 break;
             default:
-                chance = 0.92;
+                chance = 1.0;
                 break;
         }
         return zufall(seed, level, cx, cz, SALZ_LICHT) < chance;
@@ -143,7 +143,7 @@ public final class Labyrinth {
 
     // ------------------------------------------------------------ Ausgänge
 
-    /** Mitte des Ausgangsfeldes einer Zelle (auf dem Boden, Spielerhöhe). */
+    /** Mitte der Ausgangs-Säule einer Zelle (Bodenhöhe + 1). */
     public static Location ausgangsMitte(World welt, Level level, int cx, int cz) {
         int z = level.getZelle();
         return new Location(welt, cx * z + z / 2 + 0.5, level.getBodenY() + 1, cz * z + z / 2 + 0.5);

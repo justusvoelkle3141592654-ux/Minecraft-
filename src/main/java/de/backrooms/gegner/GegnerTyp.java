@@ -6,41 +6,40 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Gegner der Backrooms. Eaglercraft erlaubt keine eigenen Modelle, darum ist
- * jeder Gegner ein Vanilla-Mob mit Namen, Ausrüstung, Effekten und
- * Spezialfähigkeiten.
+ * Eigene Backrooms-Gegner. Jeder Gegner besteht aus einem unsichtbaren
+ * Vanilla-Mob (Bewegung, Trefferfläche) und einem eigenen Blockmodell
+ * (siehe {@link Modelle}), das sich mit ihm bewegt.
  */
 public enum GegnerTyp {
 
-    HOUND("hound", ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Hound", 24, 2, false,
-            "Schneller Jäger in Rudeln (wütender Wolf)"),
-    SMILER("smiler", ChatColor.WHITE + "" + ChatColor.BOLD + "Smiler", 40, 3, true,
-            "Lauert im Dunkeln, scheut die Taschenlampe (Enderman)"),
-    SKIN_STEALER("skin_stealer", ChatColor.RED + "Skin-Stealer", 30, 2, false,
-            "Sieht aus wie ein Spieler (Zombie mit Spielerkopf)"),
-    PARTYGOER("partygoer", ChatColor.YELLOW + "" + ChatColor.BOLD + "Partygoer", 24, 2, false,
-            "Grinsender Party-Gast mit Bogen (Skelett)"),
-    FACELING("faceling", ChatColor.GRAY + "Faceling", 20, 2, false,
-            "Friedlich, bis man es angreift (Zombie-Dorfbewohner)"),
-    TODESMOTTE("todesmotte", ChatColor.GOLD + "Todesmotte", 12, 1, false,
-            "Kleiner, giftiger Schwarm-Gegner (Höhlenspinne)"),
-    WARDEN("warden", ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "Warden", 300, 3, false,
-            "Endboss: Dunkelheit und Schallschlag (Wither-Skelett)");
+    //            ID,               Name,                                         Leben, Schaden, Tempo, Beschreibung
+    TAPETENKRIECHER("tapetenkriecher", ChatColor.YELLOW + "Tapetenkriecher", 10, 2, 0.28,
+            "Getarnt wie die Tapete, krabbelt auch Wände hoch"),
+    GRINSER("grinser", ChatColor.WHITE + "Grinser", 16, 3, 0.23,
+            "Schwarze Gestalt mit leuchtendem Kürbisgrinsen"),
+    SCHATTENHUND("schattenhund", ChatColor.DARK_GRAY + "Schattenhund", 12, 2, 0.32,
+            "Schneller schwarzer Hund"),
+    PARTYBALLON("partyballon", ChatColor.LIGHT_PURPLE + "Partyballon", 12, 2, 0.0,
+            "Hüpfendes Geschenk mit bunten Ballons"),
+    ROHRGEIST("rohrgeist", ChatColor.GRAY + "Rohrgeist", 20, 3, 0.22,
+            "Wesen aus Rohren mit leuchtendem Kopf"),
+    WARDEN("warden", ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "Warden", 200, 5, 0.25,
+            "Endboss: riesig, Schallschlag und Dunkelheit");
 
     private final String id;
     private final String anzeigename;
     private final int standardLeben;
-    private final int luftBedarf;
-    private final boolean nurImDunkeln;
+    private final int standardSchaden;
+    private final double tempo;
     private final String beschreibung;
 
-    GegnerTyp(String id, String anzeigename, int standardLeben, int luftBedarf, boolean nurImDunkeln,
+    GegnerTyp(String id, String anzeigename, int standardLeben, int standardSchaden, double tempo,
               String beschreibung) {
         this.id = id;
         this.anzeigename = anzeigename;
         this.standardLeben = standardLeben;
-        this.luftBedarf = luftBedarf;
-        this.nurImDunkeln = nurImDunkeln;
+        this.standardSchaden = standardSchaden;
+        this.tempo = tempo;
         this.beschreibung = beschreibung;
     }
 
@@ -56,13 +55,13 @@ public enum GegnerTyp {
         return standardLeben;
     }
 
-    /** Benötigte freie Blöcke über dem Boden zum Spawnen. */
-    public int getLuftBedarf() {
-        return luftBedarf;
+    public int getStandardSchaden() {
+        return standardSchaden;
     }
 
-    public boolean istNurImDunkeln() {
-        return nurImDunkeln;
+    /** Laufgeschwindigkeit (Attribut), 0 = Vanilla-Wert behalten. */
+    public double getTempo() {
+        return tempo;
     }
 
     public String getBeschreibung() {

@@ -76,7 +76,7 @@ public class Flackerlicht {
         Block nachbar = lampe.getRelative(1, 0, 1);
         aus.put(ort, new int[]{typ.getId(), lampe.getData()});
         lampe.setTypeIdAndData(nachbar.getTypeId(), nachbar.getData(), false);
-        lampe.getWorld().playSound(ort, Sound.CLICK, 0.3F, 2.0F);
+        lampe.getWorld().playSound(ort, Sound.UI_BUTTON_CLICK, 0.2F, 2.0F);
 
         plugin.getServer().getScheduler().runTaskLater(plugin, new Runnable() {
             @Override

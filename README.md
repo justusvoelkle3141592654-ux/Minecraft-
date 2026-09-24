@@ -1,110 +1,125 @@
 # Backrooms
 
-Backrooms-Abenteuer als Plugin für **Spigot / Paper 1.8.8** (Java 8). Es funktioniert auch
-mit **Eaglercraft 1.8**-Clients, weil nur Vanilla-Inhalte verwendet werden:
+Backrooms-Abenteuer als Plugin für **Spigot / Paper 1.12.2** (Java 8), mit eigenem
+**Resource Pack** für die Item-Bilder.
 
-- nur Vanilla-Blöcke, -Items, -Mobs, -Partikel und -Sounds
-- keine Resource Packs, keine Client-Mods, keine eigenen Modelle oder Texturen
-- neue Items und Gegner sind Vanilla-Items bzw. -Mobs mit eigenem Namen, eigener
-  Beschreibung, Ausrüstung und Spezialfähigkeiten
+- Eigene Gegner und ein Warden-Endboss, gebaut als **Blockmodelle**: unsichtbare
+  Rüstungsständer tragen Blöcke und bewegen sich mit einem unsichtbaren Mob mit.
+  Dafür braucht man kein Resource Pack.
+- Eigene Items (Pistole, Bazooka, Backrooms-Klinge, Taschenlampe …) mit eigenen Bildern
+  aus dem **Backrooms-Resource-Pack**. Ohne Pack funktionieren alle Items genauso, sie
+  sehen dann nur wie das Grund-Item aus (z. B. eine Diamanthacke).
 
 ## Build
 
-Voraussetzungen: JDK 8 oder neuer, Maven 3.
+Voraussetzungen: JDK 8 oder neuer, Maven 3, Python 3 (nur für das Resource Pack).
 
 ```bash
-mvn clean package
+mvn clean package                  # Plugin  -> target/Backrooms-3.0.0.jar
+python3 resourcepack/erstellen.py  # Pack    -> target/Backrooms-Resourcepack.zip
 ```
 
-Die fertige Datei liegt unter `target/Backrooms-2.0.0.jar`. Kopiere sie in den Ordner
-`plugins/` des **Spigot/Paper-1.8.8-Servers** (bei Eaglercraft nicht in den Proxy) und
-starte den Server neu. Beim ersten Start wird die Welt `backrooms` erzeugt.
+## Installation
+
+1. `Backrooms-3.0.0.jar` in den Ordner `plugins/` des Spigot/Paper-**1.12.2**-Servers legen
+   (eine ältere `Backrooms-*.jar` oder `SonderTNT-*.jar` vorher löschen).
+2. Server neu starten. Beim ersten Start wird die Welt `backrooms` erzeugt.
+3. **Resource Pack** – eine der beiden Möglichkeiten:
+   - **Automatisch:** `Backrooms-Resourcepack.zip` irgendwo hochladen, wo es einen
+     *direkten* Download-Link gibt, und den Link in `plugins/Backrooms/config.yml` unter
+     `resourcepack.url` eintragen. Spieler bekommen das Pack dann beim Betreten der
+     Backrooms angeboten.
+   - **Von Hand:** Jeder Spieler legt die ZIP-Datei in seinen `resourcepacks`-Ordner
+     und aktiviert sie unter *Optionen → Ressourcenpakete*.
 
 ## Spielablauf
 
-1. **`/start`** – Du bekommst deine Ausrüstung und fällst in **Level 0**.
-2. In jedem Level suchst du den **Ausgang**: ein 3x3-Feld aus **Smaragdblöcken** mit
-   Glowstone darüber. Draufstellen bringt dich ins nächste Level.
-   - Der **Ausgangs-Kompass** zeigt immer zum nächsten Ausgang (Rechtsklick: Entfernung
-     und Himmelsrichtung). In der Nähe steigen grüne Partikel auf.
-   - Rechts am Bildschirm siehst du Level, Entfernung zum Ausgang und besiegte Gegner.
-3. **Level 0 → Level 1 → Level 2 → Boss-Arena**
-4. In der Arena erwacht nach 5 Sekunden der **Warden**. Besiegst du ihn, bekommst du das
-   **Warden-Herz** und kehrst nach 5 Sekunden an den Ort zurück, an dem du `/start` benutzt hast.
+1. **`/start`** – Ausrüstung bekommen und ab in **Level 0**.
+2. In jedem Level die **Smaragd-Säule** finden und den **Knopf** daran drücken.
+   Das führt ins nächste Level.
+   - Der **Ausgangs-Kompass** zeigt zur nächsten Säule. Rechtsklick nennt Entfernung und Richtung.
+   - In der Nähe schwebt über der Säule ein Schild „AUSGANG (Knopf drücken)“.
+   - Rechts am Bildschirm stehen Level, Entfernung zum Ausgang und besiegte Gegner.
+3. **Level 0 → Level 1 → Level 2 → Boss-Arena.** Beim Betreten der Arena erscheint der
+   **Warden** sofort, mit Boss-Leiste oben am Bildschirm.
+4. Warden besiegt: Du bekommst das **Warden-Herz** und kehrst nach 5 Sekunden an den Ort
+   zurück, an dem du `/start` benutzt hast.
 
 **Tod:** Du behältst alle Items und startest am Anfang des **aktuellen** Levels neu.
+Die Backrooms sind unzerstörbar: kein Abbauen, kein Bauen, Explosionen zerstören keine Blöcke.
 
-Die Backrooms sind unzerstörbar: kein Abbauen, kein Bauen. Explosionen verletzen,
-zerstören aber keine Blöcke. Sonder-TNT darf platziert werden.
+### Level (helles Design)
 
-### Level
+| Level      | Aussehen                                                  | Gegner                                   |
+|------------|-----------------------------------------------------------|------------------------------------------|
+| Level 0    | „Die Lobby“: hellgelbe Wände, weiße Decke, Neonröhren     | Tapetenkriecher, Grinser                 |
+| Level 1    | „Das Parkhaus“: weißer/grauer Beton, gelbe Linien, Vorratstruhen | Schattenhund, Partyballon, Tapetenkriecher |
+| Level 2    | „Die Rohre“: enge Gänge mit Rohren unter der Decke        | Rohrgeist, Grinser, Schattenhund          |
+| Boss-Arena | Halle aus dunklem Prismarin mit Lichtbändern             | Warden                                    |
 
-| Level        | Aussehen                                                        | Gegner                                   |
-|--------------|-----------------------------------------------------------------|------------------------------------------|
-| Level 0      | „Die Lobby“: gelbe Wände, alter Teppich, flackernde Neonröhren   | Hound, Skin-Stealer, Faceling, Smiler     |
-| Level 1      | „Das Parkhaus“: Beton, gelbe Markierungen, Vorratstruhen         | Partygoer, Todesmotte, Hound, Skin-Stealer |
-| Level 2      | „Die Rohre“: dunkle, enge Gänge mit Rohren unter der Decke       | Smiler, Skin-Stealer, Todesmotte, Hound   |
-| Boss-Arena   | dunkle Halle mit Obsidian-Säulen                                | Warden (Endboss)                          |
+### Gegner (eigene Blockmodelle)
 
-### Gegner
+| Gegner          | Aussehen                                                  | Leben | Schaden |
+|-----------------|-----------------------------------------------------------|-------|---------|
+| Tapetenkriecher | flacher Körper in Tapetenfarbe, rotes Auge, Zaun-Beine; klettert Wände hoch | 10 | 2 |
+| Grinser         | schwarze Gestalt mit leuchtendem Kürbisgrinsen             | 16    | 3       |
+| Schattenhund    | schwarzer Hund, schnell                                    | 12    | 2       |
+| Partyballon     | hüpfendes Geschenk mit bunten Ballons und Musiknoten       | 12    | 2       |
+| Rohrgeist       | Körper aus Beton und Rohren, leuchtender Kopf              | 20    | 3       |
+| **Warden**      | etwa 3,5 Blöcke groß, dunkeltürkis, leuchtende Brust und Hörner | 200 | 5 |
 
-| Gegner        | Vanilla-Mob            | Besonderheit                                                    |
-|---------------|------------------------|-----------------------------------------------------------------|
-| Hound         | wütender Wolf          | sehr schnell, stärker, knurrt                                    |
-| Smiler        | Enderman               | erscheint nur im Dunkeln, wird von der Taschenlampe geblendet    |
-| Skin-Stealer  | Zombie                 | trägt einen Spielerkopf und Kleidung wie ein Spieler, Name versteckt |
-| Partygoer     | Skelett                | Kürbiskopf, gelbe Kleidung, schießt mit dem Bogen, Noten-Partikel |
-| Faceling      | Zombie-Dorfbewohner    | friedlich – greift erst an, wenn man es angreift                 |
-| Todesmotte    | Höhlenspinne           | schnell und giftig                                               |
-| **Warden**    | Wither-Skelett         | 300 Leben, dunkeltürkise Rüstung, **Dunkelheit** (Blindheit für alle), **Schallschlag** (Strahl, ignoriert Rüstung), ruft bei halben Leben 3 Hounds |
+Schaden: 2 = 1 Herz, der Wert gilt vor der Rüstung.
 
-Gegner kämpfen nicht untereinander. Besiegte Gegner lassen manchmal Mandelwasser oder
-Energieriegel fallen.
+**Warden-Fähigkeiten** (bewusst nicht zu schwer):
+- alle 15 Sekunden 2 Sekunden **Dunkelheit** (Blindheit)
+- alle 8 Sekunden ein **Schallschlag** mit 4 Schaden
+- bei halbem Leben ruft er einmalig **2 Schattenhunde**
+
+Alle Werte stehen in der `config.yml`.
 
 ### Items
 
-| Item              | Grundlage       | Wirkung                                                     |
-|-------------------|-----------------|-------------------------------------------------------------|
-| Mandelwasser      | Wasserflasche   | heilt 4 Herzen, entfernt Blindheit, Übelkeit, Gift, Wither  |
-| Energieriegel     | Keks            | macht satt, 20 Sekunden Tempo                               |
-| Taschenlampe      | Fackel          | in der Hand: Nachtsicht; blendet Smiler (nicht platzierbar) |
-| Ausgangs-Kompass  | Kompass         | zeigt zum nächsten Ausgang, Rechtsklick = Entfernung        |
-| Warden-Herz       | Netherstern     | Trophäe für den Sieg                                        |
-| Sonder-TNT        | TNT             | Mega, Feuer, Blitz, Lift, Cluster (siehe unten)             |
+| Item              | Wirkung                                                              |
+|-------------------|----------------------------------------------------------------------|
+| Backrooms-Klinge  | Schwert mit **30 Angriffsschaden**                                    |
+| Pistole           | Rechtsklick: Schuss (7 Schaden), keine Munition, kurze Nachladezeit   |
+| Bazooka           | Rechtsklick: Rakete, Explosion mit 25 Schaden im Umkreis, keine Blockschäden |
+| Granate           | Rechtsklick: werfen, Explosion mit 15 Schaden                        |
+| Taschenlampe      | In der Hand: Lichtkegel. Der Punkt, auf den du schaust, leuchtet (nur für dich sichtbar) |
+| Medkit            | Rechtsklick: volle Gesundheit                                        |
+| Mandelwasser      | Rechtsklick: heilt 4 Herzen, entfernt Blindheit/Gift/Langsamkeit     |
+| Energieriegel     | Essen: satt und 20 Sekunden schnell                                  |
+| Adrenalinspritze  | Rechtsklick: 20 Sekunden schneller laufen und höher springen         |
+| Ausgangs-Kompass  | zeigt zur nächsten Ausgangs-Säule                                    |
+| Warden-Herz       | Trophäe für den Sieg                                                 |
+| Sonder-TNT        | Mega, Feuer, Blitz, Lift, Cluster (zünden sofort beim Platzieren)    |
+
+**Wie das Resource Pack die Items zeigt:**
+- Waffen und Werkzeuge sind unzerstörbare Diamanthacken mit festen Modell-Nummern (1–7).
+  Normale Diamanthacken bleiben normal.
+- Mandelwasser, Energieriegel, Granate und die Pistolenkugel ersetzen das Bild von
+  Ghast-Träne, Keks, Feuerwerksstern und Schneeball.
 
 ### /start gibt
 
-- Diamantschwert (Schärfe III, Haltbarkeit III)
+- Backrooms-Klinge, Pistole, Bazooka, Taschenlampe, Ausgangs-Kompass
 - Diamantrüstung (Schutz II, Haltbarkeit III), wird direkt angezogen, wenn frei
-- Ausgangs-Kompass, Taschenlampe, 3 Mandelwasser, 8 Energieriegel
+- 2 Medkits, 1 Adrenalinspritze, 5 Mandelwasser, 8 Energieriegel, 5 Granaten
 - je 8 Sonder-TNT jeder Sorte
 
-Alle Mengen und Verzauberungsstufen sind in der `config.yml` einstellbar.
-`/start` funktioniert nur außerhalb der Backrooms. Pro Durchgang gibt es also einmal Ausrüstung.
-
-### Sonder-TNT
-
-Zünden sofort beim Platzieren. Erkannt werden sie über eine Lore-Zeile.
-
-| Typ     | Wirkung                                                       |
-|---------|---------------------------------------------------------------|
-| Mega    | Explosion Stärke 15                                           |
-| Feuer   | setzt die Umgebung in Brand                                   |
-| Blitz   | mehrere Blitze im Umkreis                                     |
-| Lift    | schleudert alles in die Luft, kein Schaden, kein Fallschaden  |
-| Cluster | zerfällt in mehrere kleine TNT                                |
+`/start` funktioniert nur außerhalb der Backrooms, also einmal pro Durchgang.
 
 ## Befehle
 
-| Befehl                                      | Recht              | Beschreibung                                |
-|---------------------------------------------|--------------------|---------------------------------------------|
-| `/start`                                    | `backrooms.start` (alle) | Ausrüstung + ab in Level 0            |
-| `/backrooms level <0\|1\|2\|boss> [Spieler]` | `backrooms.admin` (OP)  | in ein Level teleportieren            |
-| `/backrooms verlassen [Spieler]`            | `backrooms.admin`  | Backrooms verlassen                          |
-| `/backrooms item <Spieler> <item> [anzahl]` | `backrooms.admin`  | Items geben (z. B. `mandelwasser`, `mega_tnt`) |
-| `/backrooms gegner <typ>`                   | `backrooms.admin`  | Gegner an der eigenen Position spawnen       |
-| `/backrooms info`                           | `backrooms.admin`  | wer ist in welchem Level                     |
-| `/backrooms reload`                         | `backrooms.admin`  | `config.yml` neu laden                       |
+| Befehl                                       | Recht                     | Beschreibung                             |
+|----------------------------------------------|---------------------------|------------------------------------------|
+| `/start`                                     | `backrooms.start` (alle)  | Ausrüstung + ab in Level 0               |
+| `/backrooms level <0\|1\|2\|boss> [Spieler]` | `backrooms.admin` (OP)    | in ein Level teleportieren               |
+| `/backrooms verlassen [Spieler]`             | `backrooms.admin`         | Backrooms verlassen                       |
+| `/backrooms item <Spieler> <item> [anzahl]`  | `backrooms.admin`         | Items geben (z. B. `pistole`, `bazooka`, `mega_tnt`) |
+| `/backrooms gegner <typ>`                    | `backrooms.admin`         | Gegner an der eigenen Position spawnen    |
+| `/backrooms info`                            | `backrooms.admin`         | wer ist in welchem Level                  |
+| `/backrooms reload`                          | `backrooms.admin`         | `config.yml` neu laden                    |
 
 `backrooms.bauen` (OP) erlaubt Bauen in den Backrooms, aber nur im Kreativmodus.
 Alle Befehle haben Tab-Vervollständigung.
@@ -112,26 +127,28 @@ Alle Befehle haben Tab-Vervollständigung.
 ## Konfiguration
 
 Alles steht kommentiert in `plugins/Backrooms/config.yml`, zum Beispiel:
+- Resource-Pack-Link
 - Startausrüstung
+- Waffenschaden und Nachladezeiten
+- Gegner: Leben, Schaden, Häufigkeit je Level, Beute
+- Warden
 - Flackerlicht
-- Gegner-Leben und welche Gegner in welchem Level wie oft erscheinen
-- Beute
-- Warden (Leben, Schallschlag-Schaden, Abstände)
-- Loot der Vorratstruhen
+- Vorratstruhen-Loot
 - Sonder-TNT
 
 Bitte in der Datei keine Umlaute verwenden. Nach Änderungen `/backrooms reload` ausführen.
 
 ## Getestet
 
-Getestet auf Paper 1.8.8 (Build 445) mit Java 8 und einem 1.8.8-Testclient:
+Getestet auf Paper 1.12.2 (Build 1620) mit Java 8 und einem 1.12.2-Testclient (ohne Grafik):
 
 - `/start` mit Ausrüstung
-- Ausgänge durch alle Level bis zum Boss
-- Warden-Kampf, Sieg und Rückkehr
-- Tod und Respawn im aktuellen Level
-- Gegner je Level, Faceling-Verhalten
-- Flackerlicht, Mandelwasser
-- Blockschutz, auch bei Mega-TNT
+- Knopf-Ausgänge durch alle Level
+- Warden mit Modell und Boss-Leiste
+- Klinge (30 Schaden), Pistole, Bazooka, Granate
+- Medkit, Mandelwasser, Taschenlampen-Lichtfleck
+- Gegner-Modelle und Treffer auf Modellteile
+- Sieg mit Warden-Herz und Rückkehr
 
-Mit einem echten Eaglercraft-Client wurde nicht getestet.
+Wie die Blockmodelle und die Item-Bilder im Spiel **aussehen**, konnte ich ohne echten
+Spiel-Client nicht ansehen.

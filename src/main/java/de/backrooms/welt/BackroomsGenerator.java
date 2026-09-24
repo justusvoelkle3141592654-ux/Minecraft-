@@ -12,13 +12,16 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Erzeugt die Backrooms-Welt nur aus Vanilla-Blöcken (1.8.8):
+ * Erzeugt die Backrooms-Welt (Spigot/Paper 1.12.2):
  * Level 0 (Lobby), Level 1 (Parkhaus), Level 2 (Rohre) übereinander
- * und die Boss-Arena um (0, 0).
+ * und die Boss-Arena um (0, 0). Helles Design mit Beton und Seelaternen.
+ *
+ * Ausgang: eine Smaragd-Säule in der Mitte der Ausgangszelle mit einem
+ * Knopf auf jeder Seite. Knopf drücken = nächstes Level.
  */
 public class BackroomsGenerator extends ChunkGenerator {
 
-    /** Block mit Datenwert (in 1.8.8 nur per ID + Daten setzbar). */
+    /** Block mit Datenwert (Farbe, Richtung). */
     private static final class Blocktyp {
         private final int id;
         private final byte daten;
@@ -30,38 +33,45 @@ public class BackroomsGenerator extends ChunkGenerator {
         }
     }
 
-    /** Material, an dem Ausgänge erkannt werden (nur dort verbaut). */
+    /** Material der Ausgangs-Säule (wird nur dort verbaut). */
     public static final Material AUSGANG = Material.EMERALD_BLOCK;
+    /** Knopf an der Ausgangs-Säule. */
+    public static final Material AUSGANGS_KNOPF = Material.STONE_BUTTON;
 
     private static final Blocktyp LUFT = new Blocktyp(Material.AIR, 0);
-    private static final Blocktyp AUSGANG_BLOCK = new Blocktyp(AUSGANG, 0);
-    private static final Blocktyp AUSGANG_LICHT = new Blocktyp(Material.GLOWSTONE, 0);
+    private static final Blocktyp SAEULE = new Blocktyp(AUSGANG, 0);
+    private static final Blocktyp SAEULE_LICHT = new Blocktyp(Material.GLOWSTONE, 0);
+    // Knopf-Daten (1.12): 1 = zeigt nach Osten, 2 = Westen, 3 = Süden, 4 = Norden
+    private static final Blocktyp KNOPF_OST = new Blocktyp(AUSGANGS_KNOPF, 1);
+    private static final Blocktyp KNOPF_WEST = new Blocktyp(AUSGANGS_KNOPF, 2);
+    private static final Blocktyp KNOPF_SUED = new Blocktyp(AUSGANGS_KNOPF, 3);
+    private static final Blocktyp KNOPF_NORD = new Blocktyp(AUSGANGS_KNOPF, 4);
 
-    // Level 0 - Lobby: senfgelbe Tapete, alter Teppich, vergilbte Decke, Neonröhren
-    private static final Blocktyp L0_BODEN = new Blocktyp(Material.HARD_CLAY, 0);
-    private static final Blocktyp L0_WAND = new Blocktyp(Material.STAINED_CLAY, 4);
-    private static final Blocktyp L0_DECKE = new Blocktyp(Material.SANDSTONE, 2);
+    // Level 0 - Lobby: helle gelbe Tapete, beiger Teppich, weiße Decke, Neonröhren
+    private static final Blocktyp L0_BODEN = new Blocktyp(Material.STAINED_CLAY, 0);
+    private static final Blocktyp L0_WAND = new Blocktyp(Material.SANDSTONE, 2);
+    private static final Blocktyp L0_DECKE = new Blocktyp(Material.CONCRETE, 0);
     private static final Blocktyp L0_LICHT = new Blocktyp(Material.SEA_LANTERN, 0);
 
-    // Level 1 - Parkhaus: Beton, gelbe Markierungen, Leuchten
-    private static final Blocktyp L1_BODEN = new Blocktyp(Material.STAINED_CLAY, 7);
-    private static final Blocktyp L1_MARKIERUNG = new Blocktyp(Material.STAINED_CLAY, 4);
-    private static final Blocktyp L1_WAND = new Blocktyp(Material.STAINED_CLAY, 8);
-    private static final Blocktyp L1_SAEULE = new Blocktyp(Material.SMOOTH_BRICK, 0);
-    private static final Blocktyp L1_DECKE = new Blocktyp(Material.STAINED_CLAY, 7);
-    private static final Blocktyp L1_LICHT = new Blocktyp(Material.GLOWSTONE, 0);
+    // Level 1 - Parkhaus: heller Beton, gelbe Markierungen
+    private static final Blocktyp L1_BODEN = new Blocktyp(Material.CONCRETE, 8);
+    private static final Blocktyp L1_MARKIERUNG = new Blocktyp(Material.CONCRETE, 4);
+    private static final Blocktyp L1_WAND = new Blocktyp(Material.CONCRETE, 0);
+    private static final Blocktyp L1_SAEULE = new Blocktyp(Material.QUARTZ_BLOCK, 0);
+    private static final Blocktyp L1_DECKE = new Blocktyp(Material.CONCRETE, 8);
+    private static final Blocktyp L1_LICHT = new Blocktyp(Material.SEA_LANTERN, 0);
 
-    // Level 2 - Rohre: dunkle, enge Gänge mit Rohren unter der Decke
-    private static final Blocktyp L2_BODEN = new Blocktyp(Material.SMOOTH_BRICK, 2);
-    private static final Blocktyp L2_WAND = new Blocktyp(Material.STAINED_CLAY, 7);
-    private static final Blocktyp L2_DECKE = new Blocktyp(Material.STAINED_CLAY, 15);
+    // Level 2 - Rohre: enge Gänge, Rohre unter der Decke
+    private static final Blocktyp L2_BODEN = new Blocktyp(Material.SMOOTH_BRICK, 0);
+    private static final Blocktyp L2_WAND = new Blocktyp(Material.CONCRETE, 8);
+    private static final Blocktyp L2_DECKE = new Blocktyp(Material.CONCRETE, 7);
     private static final Blocktyp L2_ROHR = new Blocktyp(Material.IRON_FENCE, 0);
     private static final Blocktyp L2_LICHT = new Blocktyp(Material.GLOWSTONE, 0);
 
     // Boss-Arena
-    private static final Blocktyp B_BODEN = new Blocktyp(Material.STAINED_CLAY, 15);
-    private static final Blocktyp B_MUSTER = new Blocktyp(Material.STAINED_CLAY, 9);
-    private static final Blocktyp B_WAND = new Blocktyp(Material.OBSIDIAN, 0);
+    private static final Blocktyp B_BODEN = new Blocktyp(Material.CONCRETE, 15);
+    private static final Blocktyp B_MUSTER = new Blocktyp(Material.CONCRETE, 3);
+    private static final Blocktyp B_WAND = new Blocktyp(Material.PRISMARINE, 2);
     private static final Blocktyp B_LICHT = new Blocktyp(Material.SEA_LANTERN, 0);
 
     private final Plugin plugin;
@@ -126,7 +136,6 @@ public class BackroomsGenerator extends ChunkGenerator {
                 break;
         }
 
-        // Boden und Decke
         setze(daten, lx, boden, lz, bodenTyp);
         setze(daten, lx, decke, lz, deckeTyp);
 
@@ -134,7 +143,7 @@ public class BackroomsGenerator extends ChunkGenerator {
         boolean wandVoll = false;
         boolean wandTuer = false;
         if (ix == 0 && iz == 0) {
-            wandVoll = true; // Säule an jeder Kreuzung
+            wandVoll = true;
         } else if (ix == 0 || iz == 0) {
             boolean senkrecht = ix == 0;
             Labyrinth.Segment seg = Labyrinth.segment(seed, level, cx, cz, senkrecht);
@@ -157,20 +166,36 @@ public class BackroomsGenerator extends ChunkGenerator {
             return;
         }
         if (wandTuer) {
-            // Türöffnung 3 hoch, darüber ein Sturz
             for (int y = boden + 4; y < decke; y++) {
                 setze(daten, lx, y, lz, wandTyp);
             }
             return;
         }
 
-        // Zelleninneres
         int mitte = zelle / 2;
         boolean ausgang = Labyrinth.istAusgang(seed, level, cx, cz);
-        if (ausgang && Math.abs(ix - mitte) <= 1 && Math.abs(iz - mitte) <= 1) {
-            setze(daten, lx, boden, lz, AUSGANG_BLOCK);
-            if (ix == mitte && iz == mitte) {
-                setze(daten, lx, decke, lz, AUSGANG_LICHT);
+        if (ausgang) {
+            int dx = ix - mitte;
+            int dz = iz - mitte;
+            int knopfY = boden + 2;
+            if (dx == 0 && dz == 0) {
+                // Säule mit Licht darüber
+                setze(daten, lx, boden + 1, lz, SAEULE);
+                setze(daten, lx, boden + 2, lz, SAEULE);
+                setze(daten, lx, decke, lz, SAEULE_LICHT);
+                return;
+            }
+            if (dx == 1 && dz == 0) {
+                setze(daten, lx, knopfY, lz, KNOPF_OST);
+            } else if (dx == -1 && dz == 0) {
+                setze(daten, lx, knopfY, lz, KNOPF_WEST);
+            } else if (dx == 0 && dz == 1) {
+                setze(daten, lx, knopfY, lz, KNOPF_SUED);
+            } else if (dx == 0 && dz == -1) {
+                setze(daten, lx, knopfY, lz, KNOPF_NORD);
+            }
+            if (Math.abs(dx) <= 1 && Math.abs(dz) <= 1) {
+                setze(daten, lx, boden, lz, SAEULE); // Smaragd-Rahmen im Boden
             }
         }
 
@@ -179,9 +204,13 @@ public class BackroomsGenerator extends ChunkGenerator {
         if (lichtPos && !ausgang && Labyrinth.hatLicht(seed, level, cx, cz)) {
             setze(daten, lx, decke, lz, lichtTyp);
         }
+        // Zusätzliche Lampen in den großen Zellen von Level 1
+        if (level == Level.LEVEL_1 && !ausgang && (ix == 3 || ix == zelle - 3) && (iz == 3 || iz == zelle - 3)) {
+            setze(daten, lx, decke, lz, lichtTyp);
+        }
 
-        // Rohre unter der Decke in Level 2
-        if (level == Level.LEVEL_2 && iz == 2) {
+        // Rohre unter der Decke in Level 2 (nicht über der Ausgangs-Säule)
+        if (level == Level.LEVEL_2 && iz == 2 && !ausgang) {
             setze(daten, lx, decke - 1, lz, L2_ROHR);
         }
     }
@@ -200,13 +229,13 @@ public class BackroomsGenerator extends ChunkGenerator {
         boolean saeule = Math.abs(Math.abs(x) - 10) <= 1 && Math.abs(Math.abs(z) - 10) <= 1;
 
         setze(daten, lx, boden, lz, (ring == 6 || ring == 14) ? B_MUSTER : B_BODEN);
-        boolean licht = !rand && Math.floorMod(x, 8) == 4 && Math.floorMod(z, 8) == 4;
+        boolean licht = !rand && Math.floorMod(x, 4) == 2 && Math.floorMod(z, 4) == 2;
         setze(daten, lx, decke, lz, licht ? B_LICHT : B_BODEN);
 
         if (rand || saeule) {
             for (int y = boden + 1; y < decke; y++) {
-                boolean streifen = rand && (y == boden + 4 || y == boden + 8);
-                setze(daten, lx, y, lz, streifen ? B_MUSTER : B_WAND);
+                boolean streifen = y == boden + 4 || y == boden + 8;
+                setze(daten, lx, y, lz, streifen ? B_LICHT : B_WAND);
             }
         } else {
             for (int y = boden + 1; y < decke; y++) {

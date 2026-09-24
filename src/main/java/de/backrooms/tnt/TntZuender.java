@@ -30,7 +30,7 @@ public class TntZuender {
         TNTPrimed tnt = position.getWorld().spawn(position, TNTPrimed.class);
         tnt.setFuseTicks(Math.max(1, plugin.getConfig().getInt("tnt.zuendzeit", 80)));
         tnt.setMetadata(METADATEN_SCHLUESSEL, new FixedMetadataValue(plugin, typ.name()));
-        position.getWorld().playSound(position, Sound.FUSE, 1.0F, 1.0F);
+        position.getWorld().playSound(position, Sound.ENTITY_TNT_PRIMED, 1.0F, 1.0F);
         return tnt;
     }
 

@@ -12,9 +12,9 @@ import org.bukkit.World;
 public enum Level {
 
     //          Nummer, Name,          Untertitel,     Zelle, Boden-Y, Lufthöhe, Ausgangs-Chance je Zelle
-    LEVEL_0(0, "Level 0", "Die Lobby", 8, 20, 4, 1.0 / 300.0, ChatColor.YELLOW),
-    LEVEL_1(1, "Level 1", "Das Parkhaus", 12, 50, 6, 1.0 / 150.0, ChatColor.GRAY),
-    LEVEL_2(2, "Level 2", "Die Rohre", 6, 80, 3, 1.0 / 450.0, ChatColor.DARK_RED),
+    LEVEL_0(0, "Level 0", "Die Lobby", 8, 20, 4, 1.0 / 120.0, ChatColor.YELLOW),
+    LEVEL_1(1, "Level 1", "Das Parkhaus", 12, 50, 6, 1.0 / 70.0, ChatColor.AQUA),
+    LEVEL_2(2, "Level 2", "Die Rohre", 6, 80, 3, 1.0 / 150.0, ChatColor.GOLD),
     BOSS(3, "Boss-Arena", "Der Warden", 0, 110, 12, 0.0, ChatColor.DARK_AQUA);
 
     /** Halbe Kantenlänge der Boss-Arena (Arena reicht von -20 bis +20). */

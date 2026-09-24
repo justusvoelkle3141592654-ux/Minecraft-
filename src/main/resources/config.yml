@@ -1,5 +1,5 @@
 # ==========================================================
-#  Backrooms - Konfiguration (Spigot/Paper 1.8.8)
+#  Backrooms - Konfiguration (Spigot/Paper 1.12.2)
 #  Hinweis: Bitte in dieser Datei keine Umlaute verwenden.
 #  Nach Aenderungen: /backrooms reload
 # ==========================================================
@@ -10,71 +10,91 @@ welt:
   # Duerfen sich Spieler in den Backrooms gegenseitig verletzen?
   pvp: false
 
+# Resource Pack mit den Item-Bildern (Pistole, Bazooka, Klinge ...)
+resourcepack:
+  # Direkter Download-Link zur ZIP-Datei (leer = nicht automatisch senden).
+  # Der Link wird beim Betreten der Backrooms an den Spieler geschickt.
+  url: ""
+
 # Was /start gibt
 start:
-  # Verzauberung des Diamantschwerts (Schaerfe)
-  schwert-schaerfe: 3
-  # Verzauberung der Diamantruestung (Schutz)
+  # Diamantruestung: Schutz- und Haltbarkeits-Stufe
   ruestung-schutz: 2
-  # Haltbarkeit fuer Schwert und Ruestung
   haltbarkeit: 3
-  mandelwasser: 3
+  medkits: 2
+  adrenalin: 1
+  mandelwasser: 5
   energieriegel: 8
+  granaten: 5
   # Anzahl je Sonder-TNT-Typ (Mega, Feuer, Blitz, Lift, Cluster), 0 = keine
   sonder-tnt-je-typ: 8
 
+waffen:
+  klingen-schaden: 30.0
+  pistole-schaden: 7.0
+  pistole-nachladen: 0.35
+  bazooka-schaden: 25.0
+  bazooka-radius: 4.0
+  bazooka-nachladen: 2.0
+  granate-schaden: 15.0
+  granate-radius: 3.5
+
 licht:
-  # Deckenlichter in Level 0 und 1 flackern
+  # Deckenlichter in Level 0 und 1 flackern ab und zu kurz
   flackern: true
-  # Wahrscheinlichkeit pro Spieler alle halbe Sekunde
-  flacker-chance: 0.25
+  flacker-chance: 0.10
 
 gegner:
   aktiviert: true
-  spawn-intervall-sekunden: 5
+  spawn-intervall-sekunden: 8
   # Maximal so viele Gegner im Umkreis von 40 Bloecken um einen Spieler
-  max-pro-spieler: 5
-  max-gesamt: 60
-  abstand-min: 12
-  abstand-max: 26
+  max-pro-spieler: 3
+  max-gesamt: 40
+  abstand-min: 14
+  abstand-max: 28
   # Lebenspunkte (2 = 1 Herz)
   leben:
-    hound: 24
-    smiler: 40
-    skin_stealer: 30
-    partygoer: 24
-    faceling: 20
-    todesmotte: 12
+    tapetenkriecher: 10
+    grinser: 16
+    schattenhund: 12
+    partyballon: 12
+    rohrgeist: 20
+  # Schaden pro Treffer (2 = 1 Herz, vor Ruestung)
+  schaden:
+    tapetenkriecher: 2
+    grinser: 3
+    schattenhund: 2
+    partyballon: 2
+    rohrgeist: 3
   # Welche Gegner in welchem Level erscheinen (Zahl = Haeufigkeit, 0 = nie)
   spawn:
     level0:
-      hound: 4
-      skin_stealer: 2
-      faceling: 3
-      smiler: 1
+      tapetenkriecher: 4
+      grinser: 2
     level1:
-      partygoer: 4
-      todesmotte: 3
-      hound: 2
-      skin_stealer: 1
+      schattenhund: 3
+      partyballon: 3
+      tapetenkriecher: 1
     level2:
-      smiler: 4
-      skin_stealer: 2
-      todesmotte: 2
-      hound: 1
-  # Chance in Prozent, dass ein besiegter Gegner das Item fallen laesst
+      rohrgeist: 4
+      grinser: 2
+      schattenhund: 1
+  # Chance in Prozent, dass ein besiegter Gegner etwas fallen laesst
   beute:
-    mandelwasser: 10
-    energieriegel: 15
+    mandelwasser: 20
+    energieriegel: 20
+    granate: 10
 
 boss:
   # Lebenspunkte des Warden
-  leben: 300
-  # Schaden des Schallschlags (ignoriert Ruestung)
-  schallschlag-schaden: 6.0
-  schallschlag-sekunden: 5
-  # Alle x Sekunden Blindheit fuer alle in der Arena
-  dunkelheit-sekunden: 8
+  leben: 200
+  # Schaden seiner Schlaege
+  schaden: 5
+  # Schallschlag (ignoriert Ruestung)
+  schallschlag-schaden: 4.0
+  schallschlag-sekunden: 8
+  # Alle x Sekunden 2 Sekunden Blindheit fuer alle in der Arena
+  dunkelheit-sekunden: 15
 
 # Vorratstruhen in neu erzeugten Backrooms-Chunks
 vorrat:
@@ -85,10 +105,12 @@ vorrat:
   # Format: MATERIAL:min:max:chance (Chance in Prozent)
   # Backrooms-Items: BACKROOMS_<ITEM>, Sonder-TNT: SONDERTNT_<TYP>
   loot:
-    - "BACKROOMS_MANDELWASSER:1:1:60"
+    - "BACKROOMS_MANDELWASSER:1:3:60"
     - "BACKROOMS_ENERGIERIEGEL:1:4:60"
+    - "BACKROOMS_GRANATE:1:3:35"
+    - "BACKROOMS_MEDKIT:1:1:25"
+    - "BACKROOMS_ADRENALIN:1:1:15"
     - "BREAD:1:4:40"
-    - "ARROW:4:12:25"
     - "IRON_INGOT:1:3:25"
     - "GOLDEN_APPLE:1:1:10"
     - "SONDERTNT_MEGA:1:1:5"

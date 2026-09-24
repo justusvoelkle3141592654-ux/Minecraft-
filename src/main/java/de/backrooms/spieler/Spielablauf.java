@@ -8,23 +8,25 @@ import de.backrooms.tnt.TntTyp;
 import de.backrooms.welt.Labyrinth;
 import de.backrooms.welt.Level;
 import org.bukkit.ChatColor;
-import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /** Betreten, Level-Wechsel, Verlassen und die Anzeige pro Sekunde. */
@@ -35,6 +37,8 @@ public class Spielablauf {
 
     private final BackroomsPlugin plugin;
     private final Map<UUID, Long> ausgangSperre = new HashMap<UUID, Long>();
+    /** Schwebende "AUSGANG"-Schilder über den Säulen in der Nähe von Spielern. */
+    private final Map<String, ArmorStand> schilder = new HashMap<String, ArmorStand>();
 
     public Spielablauf(BackroomsPlugin plugin) {
         this.plugin = plugin;
@@ -56,22 +60,24 @@ public class Spielablauf {
         startAusruestung(spieler);
         zuLevel(spieler, Level.LEVEL_0);
         spieler.sendMessage(ChatColor.GOLD + "Du bist durch den Boden der Realität gefallen...");
-        spieler.sendMessage(ChatColor.GRAY + "Finde in jedem Level den " + ChatColor.GREEN + "Ausgang (Smaragd-Feld)"
-                + ChatColor.GRAY + ". Dein " + BackroomsItem.KOMPASS.getAnzeigename() + ChatColor.GRAY
-                + " zeigt den Weg. Am Ende wartet der " + ChatColor.DARK_AQUA + "Warden" + ChatColor.GRAY + ".");
+        spieler.sendMessage(ChatColor.GRAY + "Finde in jedem Level die " + ChatColor.GREEN + "Smaragd-Säule"
+                + ChatColor.GRAY + " und drück den " + ChatColor.GREEN + "Knopf" + ChatColor.GRAY + ". Dein "
+                + BackroomsItem.KOMPASS.getAnzeigename() + ChatColor.GRAY + " zeigt den Weg. Am Ende wartet der "
+                + ChatColor.DARK_AQUA + "Warden" + ChatColor.GRAY + ".");
+        ressourcenpaketSenden(spieler);
     }
 
-    /** Diamantausrüstung, Backrooms-Items und Sonder-TNT. */
+    /** Backrooms-Klinge, Waffen, Diamantrüstung, Backrooms-Items und Sonder-TNT. */
     public void startAusruestung(Player spieler) {
-        int schaerfe = plugin.getConfig().getInt("start.schwert-schaerfe", 3);
         int schutz = plugin.getConfig().getInt("start.ruestung-schutz", 2);
         int haltbarkeit = plugin.getConfig().getInt("start.haltbarkeit", 3);
 
         List<ItemStack> items = new ArrayList<ItemStack>();
-        ItemStack schwert = new ItemStack(Material.DIAMOND_SWORD);
-        verzaubern(schwert, Enchantment.DAMAGE_ALL, schaerfe);
-        verzaubern(schwert, Enchantment.DURABILITY, haltbarkeit);
-        items.add(schwert);
+        items.add(BackroomsItem.KLINGE.erstellen(1));
+        items.add(BackroomsItem.PISTOLE.erstellen(1));
+        items.add(BackroomsItem.BAZOOKA.erstellen(1));
+        items.add(BackroomsItem.TASCHENLAMPE.erstellen(1));
+        items.add(BackroomsItem.KOMPASS.erstellen(1));
 
         PlayerInventory inv = spieler.getInventory();
         ItemStack helm = ruestung(Material.DIAMOND_HELMET, schutz, haltbarkeit);
@@ -100,15 +106,15 @@ public class Spielablauf {
             items.add(schuhe);
         }
 
-        items.add(BackroomsItem.KOMPASS.erstellen(1));
-        items.add(BackroomsItem.TASCHENLAMPE.erstellen(1));
-        for (int i = 0; i < plugin.getConfig().getInt("start.mandelwasser", 3); i++) {
-            items.add(BackroomsItem.MANDELWASSER.erstellen(1)); // Flaschen stapeln nicht
+        for (int i = 0; i < plugin.getConfig().getInt("start.medkits", 2); i++) {
+            items.add(BackroomsItem.MEDKIT.erstellen(1)); // nicht stapelbar
         }
-        int riegel = plugin.getConfig().getInt("start.energieriegel", 8);
-        if (riegel > 0) {
-            items.add(BackroomsItem.ENERGIERIEGEL.erstellen(riegel));
+        for (int i = 0; i < plugin.getConfig().getInt("start.adrenalin", 1); i++) {
+            items.add(BackroomsItem.ADRENALIN.erstellen(1));
         }
+        stapel(items, BackroomsItem.MANDELWASSER, plugin.getConfig().getInt("start.mandelwasser", 5));
+        stapel(items, BackroomsItem.ENERGIERIEGEL, plugin.getConfig().getInt("start.energieriegel", 8));
+        stapel(items, BackroomsItem.GRANATE, plugin.getConfig().getInt("start.granaten", 5));
         int tnt = Math.min(64, plugin.getConfig().getInt("start.sonder-tnt-je-typ", 8));
         if (tnt > 0) {
             for (TntTyp typ : TntTyp.values()) {
@@ -120,6 +126,20 @@ public class Spielablauf {
             for (ItemStack rest : inv.addItem(item).values()) {
                 spieler.getWorld().dropItemNaturally(spieler.getLocation(), rest);
             }
+        }
+    }
+
+    private static void stapel(List<ItemStack> items, BackroomsItem item, int anzahl) {
+        if (anzahl > 0) {
+            items.add(item.erstellen(Math.min(64, anzahl)));
+        }
+    }
+
+    /** Schickt das Resource Pack, falls in der config.yml eine URL eingetragen ist. */
+    public void ressourcenpaketSenden(Player spieler) {
+        String url = plugin.getConfig().getString("resourcepack.url", "");
+        if (url != null && !url.trim().isEmpty()) {
+            spieler.setResourcePack(url.trim());
         }
     }
 
@@ -147,14 +167,14 @@ public class Spielablauf {
         spieler.teleport(level.start(welt));
         spieler.setFallDistance(0F);
         spieler.sendTitle(level.getFarbe() + "" + ChatColor.BOLD + level.getName(),
-                ChatColor.GRAY + level.getUntertitel());
-        spieler.playSound(spieler.getLocation(), Sound.PORTAL_TRAVEL, 0.4F, 1.4F);
+                ChatColor.GRAY + level.getUntertitel(), 10, 40, 10);
+        spieler.playSound(spieler.getLocation(), Sound.BLOCK_PORTAL_TRAVEL, 0.3F, 1.6F);
         if (level.istBoss()) {
             plugin.getBossKampf().spielerBetritt();
         }
     }
 
-    /** Spieler steht auf einem Ausgangsfeld. */
+    /** Spieler hat den Knopf an der Ausgangs-Säule gedrückt. */
     public void ausgangErreicht(Player spieler, Level level) {
         long jetzt = System.currentTimeMillis();
         Long gesperrt = ausgangSperre.get(spieler.getUniqueId());
@@ -197,15 +217,52 @@ public class Spielablauf {
                 }
                 continue;
             }
-            taschenlampe(spieler);
             anzeigen(spieler, level);
+        }
+        schilderAktualisieren();
+    }
+
+    /** Stellt über Ausgängen in der Nähe von Spielern ein schwebendes Schild auf. */
+    private void schilderAktualisieren() {
+        Set<String> gebraucht = new HashSet<String>();
+        World welt = plugin.getWeltManager().getWelt();
+        if (welt != null) {
+            for (Player spieler : welt.getPlayers()) {
+                Level level = plugin.getWeltManager().levelVon(spieler.getLocation());
+                if (level == null || level.istBoss()) {
+                    continue;
+                }
+                Location ausgang = Labyrinth.naechsterAusgang(welt, level,
+                        spieler.getLocation().getX(), spieler.getLocation().getZ(), 6);
+                if (ausgang == null || horizontal(spieler.getLocation(), ausgang) > 40 * 40) {
+                    continue;
+                }
+                String schluessel = ausgang.getBlockX() + "," + ausgang.getBlockY() + "," + ausgang.getBlockZ();
+                gebraucht.add(schluessel);
+                if (!schilder.containsKey(schluessel)) {
+                    ArmorStand schild = plugin.getGegnerManager().standErzeugen(ausgang.clone().add(0, 1.2, 0), true);
+                    schild.setCustomName(ChatColor.GREEN + "" + ChatColor.BOLD + "AUSGANG "
+                            + ChatColor.GRAY + "(Knopf drücken)");
+                    schild.setCustomNameVisible(true);
+                    schilder.put(schluessel, schild);
+                }
+            }
+        }
+        Iterator<Map.Entry<String, ArmorStand>> it = schilder.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, ArmorStand> eintrag = it.next();
+            if (!gebraucht.contains(eintrag.getKey()) || !eintrag.getValue().isValid()) {
+                eintrag.getValue().remove();
+                it.remove();
+            }
         }
     }
 
-    private void taschenlampe(Player spieler) {
-        if (BackroomsItem.von(spieler.getItemInHand()) == BackroomsItem.TASCHENLAMPE) {
-            spieler.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 15 * 20, 0, true), true);
+    public void schilderEntfernen() {
+        for (ArmorStand schild : schilder.values()) {
+            schild.remove();
         }
+        schilder.clear();
     }
 
     private void anzeigen(Player spieler, Level level) {
@@ -233,8 +290,8 @@ public class Spielablauf {
                     int meter = (int) Math.round(Math.sqrt(horizontal(spieler.getLocation(), ausgang)));
                     zeilen.add(ChatColor.GREEN + "Ausgang: " + meter + "m");
                     if (meter <= 24) {
-                        ausgang.getWorld().spigot().playEffect(ausgang.clone().add(0, 0.3, 0),
-                                Effect.HAPPY_VILLAGER, 0, 0, 1.0F, 0.6F, 1.0F, 0.0F, 12, 32);
+                        ausgang.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, ausgang.clone().add(0, 1.0, 0),
+                                10, 0.8, 0.8, 0.8, 0);
                     }
                 } else {
                     zeilen.add(ChatColor.GREEN + "Ausgang: ???");
@@ -267,7 +324,7 @@ public class Spielablauf {
         }
         int meter = (int) Math.round(Math.sqrt(horizontal(spieler.getLocation(), ausgang)));
         return ChatColor.GREEN + "Nächster Ausgang: " + meter + " Blöcke Richtung "
-                + richtung(spieler.getLocation(), ausgang) + ChatColor.GRAY + " (Smaragd-Feld)";
+                + richtung(spieler.getLocation(), ausgang) + ChatColor.GRAY + " (Smaragd-Säule mit Knopf)";
     }
 
     private static String richtung(Location von, Location nach) {

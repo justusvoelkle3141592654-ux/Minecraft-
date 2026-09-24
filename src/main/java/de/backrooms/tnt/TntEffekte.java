@@ -1,8 +1,8 @@
 package de.backrooms.tnt;
 
-import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -97,8 +97,8 @@ public class TntEffekte {
                         entity.setFireTicks(Math.max(entity.getFireTicks(), brenndauer));
                     }
                 }
-                partikel(mitte, Effect.FLAME, 0.15F, 60, radius);
-                partikel(mitte, Effect.LAVA_POP, 0.0F, 30, radius);
+                partikel(mitte, Particle.FLAME, 0.15F, 60, radius);
+                partikel(mitte, Particle.LAVA, 0.0F, 30, radius);
             }
         });
     }
@@ -174,16 +174,16 @@ public class TntEffekte {
      */
     public void lift(Location mitte) {
         double radius = Math.max(0.5, cfg().getDouble("tnt.lift.radius", 7.0));
-        // Werte über ~3.9 werden vom 1.8-Protokoll ohnehin abgeschnitten
+        // Werte über ~3.9 schneidet das Minecraft-Protokoll ohnehin ab
         double hoehe = Math.max(0.0, Math.min(3.9, cfg().getDouble("tnt.lift.hoehe", 2.0)));
         double seitlich = Math.max(0.0, Math.min(3.9, cfg().getDouble("tnt.lift.seitlich", 0.4)));
         boolean schutz = cfg().getBoolean("tnt.lift.fallschaden-verhindern", true);
         long schutzMs = Math.max(0, cfg().getInt("tnt.lift.fallschutz-sekunden", 15)) * 1000L;
 
         World welt = mitte.getWorld();
-        welt.playSound(mitte, Sound.EXPLODE, 4.0F, 1.2F);
-        partikel(mitte, Effect.EXPLOSION_HUGE, 0.0F, 1, 0);
-        partikel(mitte, Effect.CLOUD, 0.2F, 80, 2);
+        welt.playSound(mitte, Sound.ENTITY_GENERIC_EXPLODE, 4.0F, 1.2F);
+        partikel(mitte, Particle.EXPLOSION_HUGE, 0.0F, 1, 0);
+        partikel(mitte, Particle.CLOUD, 0.2F, 80, 2);
 
         aufraeumen();
         long jetzt = System.currentTimeMillis();
@@ -260,9 +260,8 @@ public class TntEffekte {
 
     // ------------------------------------------------------------------ Hilfen
 
-    /** Vanilla-Partikel über die Spigot-API von 1.8.8. */
-    private void partikel(Location ort, Effect effekt, float tempo, int anzahl, float streuung) {
-        ort.getWorld().spigot().playEffect(ort, effekt, 0, 0,
-                streuung, streuung, streuung, tempo, anzahl, 64);
+    /** Vanilla-Partikel (1.12-API). */
+    private void partikel(Location ort, Particle partikel, float tempo, int anzahl, float streuung) {
+        ort.getWorld().spawnParticle(partikel, ort, anzahl, streuung, streuung, streuung, tempo);
     }
 }

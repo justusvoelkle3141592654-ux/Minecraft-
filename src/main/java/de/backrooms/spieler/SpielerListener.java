@@ -4,7 +4,6 @@ import de.backrooms.BackroomsPlugin;
 import de.backrooms.welt.BackroomsGenerator;
 import de.backrooms.welt.Level;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -12,7 +11,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
@@ -20,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** Ausgänge, Tod und Wiedereinstieg im aktuellen Level. */
+/** Ausgangs-Knöpfe, Tod und Wiedereinstieg im aktuellen Level. */
 public class SpielerListener implements Listener {
 
     private final BackroomsPlugin plugin;
@@ -31,24 +33,34 @@ public class SpielerListener implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler(ignoreCancelled = true)
-    public void beimBewegen(PlayerMoveEvent event) {
-        Location von = event.getFrom();
-        Location nach = event.getTo();
-        if (von.getBlockX() == nach.getBlockX() && von.getBlockY() == nach.getBlockY()
-                && von.getBlockZ() == nach.getBlockZ()) {
+    /** Knopf an einer Ausgangs-Säule gedrückt -> nächstes Level. */
+    @EventHandler
+    public void beimKnopf(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getHand() != EquipmentSlot.HAND) {
             return;
         }
-        if (!plugin.getWeltManager().istBackrooms(nach.getWorld())) {
+        Block knopf = event.getClickedBlock();
+        if (knopf == null || knopf.getType() != BackroomsGenerator.AUSGANGS_KNOPF
+                || !plugin.getWeltManager().istBackrooms(knopf.getWorld())) {
             return;
         }
-        Block darunter = nach.getBlock().getRelative(BlockFace.DOWN);
-        if (darunter.getType() != BackroomsGenerator.AUSGANG) {
-            return;
+        boolean anSaeule = false;
+        for (BlockFace seite : new BlockFace[]{BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST}) {
+            if (knopf.getRelative(seite).getType() == BackroomsGenerator.AUSGANG) {
+                anSaeule = true;
+                break;
+            }
         }
-        Level level = Level.vonHoehe(nach.getY());
-        if (level != null && !level.istBoss()) {
+        Level level = Level.vonHoehe(knopf.getY());
+        if (anSaeule && level != null && !level.istBoss()) {
             plugin.getSpielablauf().ausgangErreicht(event.getPlayer(), level);
+        }
+    }
+
+    @EventHandler
+    public void beimBetreten(PlayerJoinEvent event) {
+        if (plugin.getWeltManager().istBackrooms(event.getPlayer().getWorld())) {
+            plugin.getSpielablauf().ressourcenpaketSenden(event.getPlayer());
         }
     }
 
@@ -81,7 +93,8 @@ public class SpielerListener implements Listener {
                 if (!spieler.isOnline()) {
                     return;
                 }
-                spieler.sendTitle(level.getFarbe() + level.getName(), ChatColor.GRAY + "Versuch es noch einmal ...");
+                spieler.sendTitle(level.getFarbe() + level.getName(), ChatColor.GRAY + "Versuch es noch einmal ...",
+                        10, 40, 10);
                 if (level.istBoss()) {
                     plugin.getBossKampf().spielerBetritt();
                 }

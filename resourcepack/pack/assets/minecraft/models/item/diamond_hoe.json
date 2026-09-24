@@ -1,0 +1,71 @@
+{
+  "parent": "item/handheld",
+  "textures": {
+    "layer0": "items/diamond_hoe"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "damaged": 0,
+        "damage": 0
+      },
+      "model": "item/diamond_hoe"
+    },
+    {
+      "predicate": {
+        "damaged": 0,
+        "damage": 0.00032031
+      },
+      "model": "item/backrooms/klinge"
+    },
+    {
+      "predicate": {
+        "damaged": 0,
+        "damage": 0.00096092
+      },
+      "model": "item/backrooms/pistole"
+    },
+    {
+      "predicate": {
+        "damaged": 0,
+        "damage": 0.00160154
+      },
+      "model": "item/backrooms/bazooka"
+    },
+    {
+      "predicate": {
+        "damaged": 0,
+        "damage": 0.00224215
+      },
+      "model": "item/backrooms/taschenlampe"
+    },
+    {
+      "predicate": {
+        "damaged": 0,
+        "damage": 0.00288277
+      },
+      "model": "item/backrooms/medkit"
+    },
+    {
+      "predicate": {
+        "damaged": 0,
+        "damage": 0.00352338
+      },
+      "model": "item/backrooms/wardenherz"
+    },
+    {
+      "predicate": {
+        "damaged": 0,
+        "damage": 0.004164
+      },
+      "model": "item/backrooms/adrenalin"
+    },
+    {
+      "predicate": {
+        "damaged": 1,
+        "damage": 0
+      },
+      "model": "item/diamond_hoe"
+    }
+  ]
+}

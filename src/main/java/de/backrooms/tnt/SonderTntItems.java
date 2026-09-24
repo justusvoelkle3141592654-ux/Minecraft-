@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Erstellt Sonder-TNT-Items und erkennt sie wieder.
  *
- * In 1.8.8 gibt es keine PersistentDataContainer. Deshalb bekommt jedes
+ * In 1.12.2 gibt es keine PersistentDataContainer. Deshalb bekommt jedes
  * Sonder-TNT eine feste Markierungszeile in der Lore
  * (z. B. "SonderTNT-Typ: MEGA"). Die Lore kann im Survival-Modus
  * nicht verändert werden (auch nicht per Amboss), der Anzeigename schon.
