@@ -1,7 +1,7 @@
-package de.sondertnt.struktur;
+package de.backrooms.items;
 
-import de.sondertnt.tnt.SonderTntItems;
-import de.sondertnt.tnt.TntTyp;
+import de.backrooms.tnt.SonderTntItems;
+import de.backrooms.tnt.TntTyp;
 import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -15,10 +15,12 @@ import java.util.Random;
  * Loot-Tabelle aus der config.yml. Format je Eintrag:
  * {@code MATERIAL:min:max:chance}, Chance in Prozent (0-100).
  * Sonder-TNT: {@code SONDERTNT_<TYP>:min:max:chance}, z. B. SONDERTNT_MEGA:1:1:10.
+ * Backrooms-Items: {@code BACKROOMS_<ITEM>:min:max:chance}, z. B. BACKROOMS_MANDELWASSER:1:2:50.
  */
 public class LootTabelle {
 
     private static final String SONDER_PRAEFIX = "SONDERTNT_";
+    private static final String BACKROOMS_PRAEFIX = "BACKROOMS_";
 
     private final List<Eintrag> eintraege = new ArrayList<Eintrag>();
     private final List<String> fehler = new ArrayList<String>();
@@ -102,6 +104,13 @@ public class LootTabelle {
                 return null;
             }
             vorlage = SonderTntItems.erstellen(typ, 1);
+        } else if (name.startsWith(BACKROOMS_PRAEFIX)) {
+            BackroomsItem item = BackroomsItem.vonId(name.substring(BACKROOMS_PRAEFIX.length()));
+            if (item == null) {
+                fehler.add(zeile + " (unbekanntes Backrooms-Item)");
+                return null;
+            }
+            vorlage = item.erstellen(1);
         } else {
             Material material = Material.matchMaterial(name);
             if (material == null || material == Material.AIR) {

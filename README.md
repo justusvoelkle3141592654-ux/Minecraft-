@@ -1,13 +1,12 @@
-# SonderTNT
+# Backrooms
 
-Plugin für **Spigot / Paper 1.8.8** (Java 8) mit Sonder-TNT und Strukturen aus
-Vanilla-Blöcken. Es funktioniert auch mit **Eaglercraft**-Clients:
+Backrooms-Abenteuer als Plugin für **Spigot / Paper 1.8.8** (Java 8). Es funktioniert auch
+mit **Eaglercraft 1.8**-Clients, weil nur Vanilla-Inhalte verwendet werden:
 
-- nur Vanilla-Blöcke, -Items, -Partikel und -Sounds
-- keine Resource Packs, keine Client-Mods, keine eigenen Modelle
-- Sonder-TNT sind normale TNT-Items. Erkannt werden sie über eine feste Lore-Zeile
-  (`SonderTNT-Typ: <TYP>`), weil es in 1.8.8 noch keine PersistentData gibt.
-  Umbenennen im Amboss ändert daran nichts.
+- nur Vanilla-Blöcke, -Items, -Mobs, -Partikel und -Sounds
+- keine Resource Packs, keine Client-Mods, keine eigenen Modelle oder Texturen
+- neue Items und Gegner sind Vanilla-Items bzw. -Mobs mit eigenem Namen, eigener
+  Beschreibung, Ausrüstung und Spezialfähigkeiten
 
 ## Build
 
@@ -17,93 +16,122 @@ Voraussetzungen: JDK 8 oder neuer, Maven 3.
 mvn clean package
 ```
 
-Die fertige Datei liegt unter `target/SonderTNT-1.0.0.jar`. Kopiere sie in den
-Ordner `plugins/` des Servers und starte ihn neu.
+Die fertige Datei liegt unter `target/Backrooms-2.0.0.jar`. Kopiere sie in den Ordner
+`plugins/` des **Spigot/Paper-1.8.8-Servers** (bei Eaglercraft nicht in den Proxy) und
+starte den Server neu. Beim ersten Start wird die Welt `backrooms` erzeugt.
 
-Die Spigot-API 1.8.8 kommt aus dem Spigot-Repository
-(`https://hub.spigotmc.org/nexus/content/groups/public/`). Mit JDK 9 oder neuer
-wird automatisch gegen die Java-8-API kompiliert (`--release 8`). So können keine
-neueren Java-Methoden hineinrutschen.
+## Spielablauf
 
-## Sonder-TNT
+1. **`/start`** – Du bekommst deine Ausrüstung und fällst in **Level 0**.
+2. In jedem Level suchst du den **Ausgang**: ein 3x3-Feld aus **Smaragdblöcken** mit
+   Glowstone darüber. Draufstellen bringt dich ins nächste Level.
+   - Der **Ausgangs-Kompass** zeigt immer zum nächsten Ausgang (Rechtsklick: Entfernung
+     und Himmelsrichtung). In der Nähe steigen grüne Partikel auf.
+   - Rechts am Bildschirm siehst du Level, Entfernung zum Ausgang und besiegte Gegner.
+3. **Level 0 → Level 1 → Level 2 → Boss-Arena**
+4. In der Arena erwacht nach 5 Sekunden der **Warden**. Besiegst du ihn, bekommst du das
+   **Warden-Herz** und kehrst nach 5 Sekunden an den Ort zurück, an dem du `/start` benutzt hast.
 
-| Typ       | Wirkung                                                                 | Rezept (Werkbank)                                   |
-|-----------|-------------------------------------------------------------------------|-----------------------------------------------------|
-| `mega`    | Explosion mit Stärke 15                                                  | 8 TNT rundherum, Obsidian in der Mitte               |
-| `feuer`   | Explosion setzt die Umgebung in Brand, Spieler/Mobs im Radius brennen    | TNT in der Mitte, 4 Lohenstaub oben/unten/links/rechts |
-| `blitz`   | Explosion und danach mehrere Blitze im Umkreis                         | TNT in der Mitte, 4 Glowstonestaub (Kreuz)           |
-| `lift`    | Schleudert Spieler und Entities hoch, zerstört keine Blöcke, kein Schaden | TNT in der Mitte, Schleimball oben/unten, Feder links/rechts |
-| `cluster` | Explosion, danach verteilen sich mehrere kleine TNT                     | 5 TNT im X-Muster, 4 Schwarzpulver dazwischen        |
+**Tod:** Du behältst alle Items und startest am Anfang des **aktuellen** Levels neu.
 
-- Beim Platzieren wird das TNT sofort gezündet, wie normales TNT durch Redstone.
-  Der Typ wird am gezündeten TNT gespeichert, damit die richtige Explosion folgt.
-- Auch aus einem Werfer (Dispenser) gezündet behält Sonder-TNT seinen Typ.
-- Nach dem Lift-TNT gibt es standardmäßig keinen Fallschaden (einmalig, abschaltbar).
-- Sonder-TNT kann nicht als Zutat für ein anderes Sonder-TNT benutzt werden. So geht es nicht aus Versehen verloren.
-- Jedes Rezept lässt sich in der `config.yml` unter `rezepte:` abschalten.
+Die Backrooms sind unzerstörbar: kein Abbauen, kein Bauen. Explosionen verletzen,
+zerstören aber keine Blöcke. Sonder-TNT darf platziert werden.
 
-## Strukturen
+### Level
 
-| Name         | Größe (B x T x H) | Beschreibung                                           |
-|--------------|-------------------|--------------------------------------------------------|
-| `turm`       | 7 x 7 x 17        | Steinziegel-Turm, 3 Etagen, Leiter, Zinnen             |
-| `ruine`      | 11 x 11 x 6       | Zerbrochene Mauern, Säulenreste, Schutt, Spinnweben    |
-| `schatzhaus` | 7 x 9 x 9         | Holzhaus mit Walmdach und Truhe mit Zufallsloot        |
-| `festung`    | 15 x 15 x 10      | Ringmauer, 4 Ecktürme, Wehrgang, Tor, Bergfried        |
+| Level        | Aussehen                                                        | Gegner                                   |
+|--------------|-----------------------------------------------------------------|------------------------------------------|
+| Level 0      | „Die Lobby“: gelbe Wände, alter Teppich, flackernde Neonröhren   | Hound, Skin-Stealer, Faceling, Smiler     |
+| Level 1      | „Das Parkhaus“: Beton, gelbe Markierungen, Vorratstruhen         | Partygoer, Todesmotte, Hound, Skin-Stealer |
+| Level 2      | „Die Rohre“: dunkle, enge Gänge mit Rohren unter der Decke       | Smiler, Skin-Stealer, Todesmotte, Hound   |
+| Boss-Arena   | dunkle Halle mit Obsidian-Säulen                                | Warden (Endboss)                          |
 
-- Alle Strukturen werden per Bukkit-API aus Vanilla-Blöcken gebaut, ohne WorldEdit und ohne Schematic-Dateien.
-- `/struktur bauen <name>` baut die Struktur vor dem Spieler, mit dem Eingang zum Spieler hin.
-  **Achtung:** Der Bauraum wird freigeräumt. Was dort steht, wird ersetzt.
-  Lücken unter der Grundfläche werden mit Bruchstein aufgefüllt.
-- Der Truhen-Loot steht in der `config.yml` unter `strukturen.loot`
-  (Format `MATERIAL:min:max:chance`, Chance in Prozent). Sonder-TNT als Loot:
-  `SONDERTNT_MEGA:1:1:5` usw.
+### Gegner
 
-### Weltgenerierung
+| Gegner        | Vanilla-Mob            | Besonderheit                                                    |
+|---------------|------------------------|-----------------------------------------------------------------|
+| Hound         | wütender Wolf          | sehr schnell, stärker, knurrt                                    |
+| Smiler        | Enderman               | erscheint nur im Dunkeln, wird von der Taschenlampe geblendet    |
+| Skin-Stealer  | Zombie                 | trägt einen Spielerkopf und Kleidung wie ein Spieler, Name versteckt |
+| Partygoer     | Skelett                | Kürbiskopf, gelbe Kleidung, schießt mit dem Bogen, Noten-Partikel |
+| Faceling      | Zombie-Dorfbewohner    | friedlich – greift erst an, wenn man es angreift                 |
+| Todesmotte    | Höhlenspinne           | schnell und giftig                                               |
+| **Warden**    | Wither-Skelett         | 300 Leben, dunkeltürkise Rüstung, **Dunkelheit** (Blindheit für alle), **Schallschlag** (Strahl, ignoriert Rüstung), ruft bei halben Leben 3 Hounds |
 
-Unter `weltgenerierung:` in der `config.yml`:
+Gegner kämpfen nicht untereinander. Besiegte Gegner lassen manchmal Mandelwasser oder
+Energieriegel fallen.
 
-- `aktiviert` – an/aus (Standard: **aus**)
-- `chance-pro-chunk` – Wahrscheinlichkeit pro **neu generiertem** Chunk (Standard 0.002 ≈ 1 von 500)
-- `gewichtung` – relative Häufigkeit je Struktur (0 = nie)
-- `welten` – auf bestimmte Welten beschränken (leer = alle Oberwelten; Nether/End nie)
-- `max-hoehenunterschied` – nur auf ausreichend flachem Boden bauen
-- `log` – Koordinaten generierter Strukturen in der Konsole ausgeben
+### Items
 
-Strukturen erscheinen nur in Chunks, die neu erzeugt werden. Bereits erkundete Gebiete
-bleiben unverändert. Jede Struktur wird komplett innerhalb eines Chunks gebaut.
-Auf Wasser, Eis, Lava und Laub wird nicht gebaut.
+| Item              | Grundlage       | Wirkung                                                     |
+|-------------------|-----------------|-------------------------------------------------------------|
+| Mandelwasser      | Wasserflasche   | heilt 4 Herzen, entfernt Blindheit, Übelkeit, Gift, Wither  |
+| Energieriegel     | Keks            | macht satt, 20 Sekunden Tempo                               |
+| Taschenlampe      | Fackel          | in der Hand: Nachtsicht; blendet Smiler (nicht platzierbar) |
+| Ausgangs-Kompass  | Kompass         | zeigt zum nächsten Ausgang, Rechtsklick = Entfernung        |
+| Warden-Herz       | Netherstern     | Trophäe für den Sieg                                        |
+| Sonder-TNT        | TNT             | Mega, Feuer, Blitz, Lift, Cluster (siehe unten)             |
+
+### /start gibt
+
+- Diamantschwert (Schärfe III, Haltbarkeit III)
+- Diamantrüstung (Schutz II, Haltbarkeit III), wird direkt angezogen, wenn frei
+- Ausgangs-Kompass, Taschenlampe, 3 Mandelwasser, 8 Energieriegel
+- je 8 Sonder-TNT jeder Sorte
+
+Alle Mengen und Verzauberungsstufen sind in der `config.yml` einstellbar.
+`/start` funktioniert nur außerhalb der Backrooms. Pro Durchgang gibt es also einmal Ausrüstung.
+
+### Sonder-TNT
+
+Zünden sofort beim Platzieren. Erkannt werden sie über eine Lore-Zeile.
+
+| Typ     | Wirkung                                                       |
+|---------|---------------------------------------------------------------|
+| Mega    | Explosion Stärke 15                                           |
+| Feuer   | setzt die Umgebung in Brand                                   |
+| Blitz   | mehrere Blitze im Umkreis                                     |
+| Lift    | schleudert alles in die Luft, kein Schaden, kein Fallschaden  |
+| Cluster | zerfällt in mehrere kleine TNT                                |
 
 ## Befehle
 
-| Befehl                                   | Beschreibung                                  |
-|------------------------------------------|-----------------------------------------------|
-| `/sondertnt give <Spieler> <typ> [anzahl]` | Sonder-TNT geben (Anzahl 1–2304)            |
-| `/sondertnt alle <Spieler> [anzahl]`     | Alle 5 Sonder-TNT (je 64 oder `anzahl`) + 1 Feuerzeug |
-| `/sondertnt list`                        | Alle Sonder-TNT-Typen anzeigen                |
-| `/sondertnt reload`                      | `config.yml` neu laden (inkl. Rezepte, Loot)  |
-| `/struktur bauen <name>`                 | Struktur vor dem Spieler bauen                |
-| `/struktur list`                         | Alle Strukturen anzeigen                      |
+| Befehl                                      | Recht              | Beschreibung                                |
+|---------------------------------------------|--------------------|---------------------------------------------|
+| `/start`                                    | `backrooms.start` (alle) | Ausrüstung + ab in Level 0            |
+| `/backrooms level <0\|1\|2\|boss> [Spieler]` | `backrooms.admin` (OP)  | in ein Level teleportieren            |
+| `/backrooms verlassen [Spieler]`            | `backrooms.admin`  | Backrooms verlassen                          |
+| `/backrooms item <Spieler> <item> [anzahl]` | `backrooms.admin`  | Items geben (z. B. `mandelwasser`, `mega_tnt`) |
+| `/backrooms gegner <typ>`                   | `backrooms.admin`  | Gegner an der eigenen Position spawnen       |
+| `/backrooms info`                           | `backrooms.admin`  | wer ist in welchem Level                     |
+| `/backrooms reload`                         | `backrooms.admin`  | `config.yml` neu laden                       |
 
-Im Befehlsblock funktioniert auch `@p`, z. B. `sondertnt alle @p`
-(in der `server.properties` muss `enable-command-block=true` stehen).
-
-Alle Befehle haben Tab-Vervollständigung und brauchen die Permission
-**`sondertnt.admin`** (Standard: OP).
+`backrooms.bauen` (OP) erlaubt Bauen in den Backrooms, aber nur im Kreativmodus.
+Alle Befehle haben Tab-Vervollständigung.
 
 ## Konfiguration
 
-Alle Werte sind in der `config.yml` kommentiert, z. B. Explosionsstärken,
-Zündzeit, Blitz-Anzahl, Lift-Höhe und Anzahl der Cluster-TNT. Bitte in der Datei
-keine Umlaute verwenden. Nach Änderungen `/sondertnt reload` ausführen.
+Alles steht kommentiert in `plugins/Backrooms/config.yml`, zum Beispiel:
+- Startausrüstung
+- Flackerlicht
+- Gegner-Leben und welche Gegner in welchem Level wie oft erscheinen
+- Beute
+- Warden (Leben, Schallschlag-Schaden, Abstände)
+- Loot der Vorratstruhen
+- Sonder-TNT
+
+Bitte in der Datei keine Umlaute verwenden. Nach Änderungen `/backrooms reload` ausführen.
 
 ## Getestet
 
 Getestet auf Paper 1.8.8 (Build 445) mit Java 8 und einem 1.8.8-Testclient:
 
-- alle fünf TNT-Typen, auch aus einem Werfer
-- die fünf Rezepte und das Abschalten per reload
-- alle Strukturen in allen vier Blickrichtungen, mit Leitern und Truhen-Loot
-- die Weltgenerierung
+- `/start` mit Ausrüstung
+- Ausgänge durch alle Level bis zum Boss
+- Warden-Kampf, Sieg und Rückkehr
+- Tod und Respawn im aktuellen Level
+- Gegner je Level, Faceling-Verhalten
+- Flackerlicht, Mandelwasser
+- Blockschutz, auch bei Mega-TNT
 
 Mit einem echten Eaglercraft-Client wurde nicht getestet.

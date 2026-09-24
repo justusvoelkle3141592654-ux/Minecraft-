@@ -1,4 +1,4 @@
-package de.sondertnt.tnt;
+package de.backrooms.tnt;
 
 import org.bukkit.Effect;
 import org.bukkit.Location;
@@ -127,7 +127,7 @@ public class TntEffekte {
                         x += Math.cos(winkel) * abstand;
                         z += Math.sin(winkel) * abstand;
                     }
-                    int y = welt.getHighestBlockYAt((int) Math.floor(x), (int) Math.floor(z));
+                    int y = bodenHoehe(welt, (int) Math.floor(x), mitte.getBlockY(), (int) Math.floor(z));
                     Location ziel = new Location(welt, x, y, z);
                     if (nurEffekt) {
                         welt.strikeLightningEffect(ziel);
@@ -137,6 +137,33 @@ public class TntEffekte {
                 }
             }, 1L + (long) i * verzoegerung);
         }
+    }
+
+    /**
+     * Sucht ausgehend von der Explosionshöhe den Boden an (x, z). Anders als
+     * getHighestBlockYAt funktioniert das auch in Innenräumen (Backrooms, Höhlen),
+     * wo sonst der Blitz oben auf dem Dach einschlagen würde.
+     */
+    private static int bodenHoehe(World welt, int x, int startY, int z) {
+        int y = Math.max(1, Math.min(welt.getMaxHeight() - 2, startY));
+        if (welt.getBlockAt(x, y, z).getType().isSolid()) {
+            // in einem Hügel/einer Wand: etwas nach oben suchen
+            for (int i = 0; i < 3; i++) {
+                if (!welt.getBlockAt(x, y + 1, z).getType().isSolid()) {
+                    return y + 1;
+                }
+                y++;
+            }
+            return startY;
+        }
+        // in der Luft: nach unten bis zum Boden
+        for (int i = 0; i < 16 && y > 1; i++) {
+            if (welt.getBlockAt(x, y - 1, z).getType().isSolid()) {
+                break;
+            }
+            y--;
+        }
+        return y;
     }
 
     // ------------------------------------------------------------------ Lift

@@ -1,4 +1,4 @@
-package de.sondertnt.tnt;
+package de.backrooms.tnt;
 
 import org.bukkit.Location;
 import org.bukkit.Sound;

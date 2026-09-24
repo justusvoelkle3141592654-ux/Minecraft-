@@ -1,4 +1,4 @@
-package de.sondertnt.tnt;
+package de.backrooms.tnt;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -14,10 +14,8 @@ import org.bukkit.event.block.BlockDispenseEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.ExplosionPrimeEvent;
-import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.Recipe;
 import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.Plugin;
 
@@ -146,24 +144,6 @@ public class SonderTntListener implements Listener {
         if (event.getCause() == EntityDamageEvent.DamageCause.FALL
                 && effekte.fallschutzVerbrauchen(event.getEntity().getUniqueId())) {
             event.setCancelled(true);
-        }
-    }
-
-    /**
-     * Verhindert, dass Sonder-TNT als Zutat für ein anderes Sonder-TNT
-     * "verbraucht" wird (z. B. 8 Mega-TNT zu einem Mega-TNT).
-     */
-    @EventHandler
-    public void beimVorbereitenDesCraftens(PrepareItemCraftEvent event) {
-        Recipe rezept = event.getRecipe();
-        if (rezept == null || !SonderTntItems.istSonderTnt(rezept.getResult())) {
-            return;
-        }
-        for (ItemStack zutat : event.getInventory().getMatrix()) {
-            if (SonderTntItems.istSonderTnt(zutat)) {
-                event.getInventory().setResult(null);
-                return;
-            }
         }
     }
 }

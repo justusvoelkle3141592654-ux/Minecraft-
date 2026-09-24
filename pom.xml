@@ -4,13 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>de.sondertnt</groupId>
-    <artifactId>SonderTNT</artifactId>
-    <version>1.0.0</version>
+    <groupId>de.backrooms</groupId>
+    <artifactId>Backrooms</artifactId>
+    <version>2.0.0</version>
     <packaging>jar</packaging>
 
-    <name>SonderTNT</name>
-    <description>Sonder-TNT und Vanilla-Strukturen fuer Spigot/Paper 1.8.8 (Eaglercraft-kompatibel)</description>
+    <name>Backrooms</name>
+    <description>Backrooms-Abenteuer fuer Spigot/Paper 1.8.8 (Eaglercraft-kompatibel, nur Vanilla-Inhalte)</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -36,7 +36,7 @@
     </dependencies>
 
     <build>
-        <finalName>SonderTNT-${project.version}</finalName>
+        <finalName>Backrooms-${project.version}</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>

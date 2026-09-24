@@ -1,23 +1,28 @@
-name: SonderTNT
+name: Backrooms
 version: ${project.version}
-main: de.sondertnt.SonderTNTPlugin
-description: Sonder-TNT und Vanilla-Strukturen (Eaglercraft-kompatibel)
-author: SonderTNT
-load: STARTUP
+main: de.backrooms.BackroomsPlugin
+description: Backrooms-Abenteuer mit Leveln, Gegnern, Warden-Boss und Sonder-TNT (Eaglercraft-kompatibel)
+author: Backrooms
 
 commands:
-  sondertnt:
-    description: Sonder-TNT geben, auflisten und Konfiguration neu laden
-    usage: /<command> give <Spieler> <typ> [anzahl] | alle <Spieler> [anzahl] | list | reload
-    permission: sondertnt.admin
+  start:
+    description: Ausruestung bekommen und in die Backrooms fallen
+    usage: /<command>
+    permission: backrooms.start
     permission-message: Dazu fehlt dir die Berechtigung.
-  struktur:
-    description: Strukturen bauen und auflisten
-    usage: /<command> bauen <name> | list
-    permission: sondertnt.admin
+  backrooms:
+    description: Verwaltung der Backrooms (Level, Items, Gegner)
+    usage: /<command> level|verlassen|item|gegner|info|reload
+    permission: backrooms.admin
     permission-message: Dazu fehlt dir die Berechtigung.
 
 permissions:
-  sondertnt.admin:
-    description: Erlaubt alle SonderTNT-Befehle (/sondertnt, /struktur)
+  backrooms.start:
+    description: Erlaubt /start
+    default: true
+  backrooms.admin:
+    description: Erlaubt /backrooms (Level wechseln, Items geben, Gegner spawnen)
+    default: op
+  backrooms.bauen:
+    description: Erlaubt Bauen/Abbauen in der Backrooms-Welt (nur im Kreativmodus)
     default: op
